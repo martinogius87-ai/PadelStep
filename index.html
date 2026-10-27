@@ -383,12 +383,12 @@ function dove(e,n){
 }
 
 /* ---------- Stato e salvataggio ---------- */
-var S={setup:{n:1,c:1,pub:"a",eta:"8-10",lv:1,dur:60,tema:"auto",aree:[],mat:{cesto:1,palline:1,coni:1,cerchi:1,scaletta:1,bande:0,step:0}},log:[],video:{},al:[]};
-var tab="prep", newAl=false, R={sel:null}, L=null, ref=null, saveT=null, dbOk=false;
+var S={setup:{n:1,c:1,pub:"a",eta:"8-10",lv:1,dur:60,tema:"auto",aree:[],mat:{cesto:1,palline:1,coni:1,cerchi:1,scaletta:1,bande:0,step:0}},log:[],video:{},al:[],note:{}};
+var areaMsg="", askOpen=false, askTxt="", tab="prep", newAl=false, R={sel:null}, L=null, ref=null, saveT=null, dbOk=false;
 var LS="padel_coach_v1";
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
 function loadLocal(){try{var j=localStorage.getItem(LS);if(j){merge(JSON.parse(j));}}catch(e){}}
-function merge(d){if(!d)return;if(d.setup&&d.setup.mat&&d.setup.mat.cestino!==undefined){d.setup.mat.cesto=d.setup.mat.cestino;delete d.setup.mat.cestino;}if(d.setup){Object.assign(S.setup,d.setup);S.setup.mat=Object.assign({},S.setup.mat,d.setup.mat||{});}if(d.log)S.log=d.log;if(d.al)S.al=d.al;if(S.setup.tema&&S.setup.tema!=="auto"&&!(S.setup.aree&&S.setup.aree.length))S.setup.aree=[S.setup.tema];S.setup.aree=S.setup.aree||[];if(d.video)S.video=d.video;}
+function merge(d){if(!d)return;if(d.setup&&d.setup.mat&&d.setup.mat.cestino!==undefined){d.setup.mat.cesto=d.setup.mat.cestino;delete d.setup.mat.cestino;}if(d.setup){Object.assign(S.setup,d.setup);S.setup.mat=Object.assign({},S.setup.mat,d.setup.mat||{});}if(d.log)S.log=d.log;if(d.al)S.al=d.al;if(d.note)S.note=d.note;if(S.setup.tema&&S.setup.tema!=="auto"&&!(S.setup.aree&&S.setup.aree.length))S.setup.aree=[S.setup.tema];S.setup.aree=S.setup.aree||[];if(d.video)S.video=d.video;}
 function save(){
  try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
  clearTimeout(saveT);
@@ -560,6 +560,7 @@ function vEx(bi,si){
  o+='<div class="vid"><a href="https:\/\/www.youtube.com/results?search_query='+encodeURIComponent(e.q)+'" target="_blank" rel="noopener">Cerca un video</a>';
  if(mv)o+='<a href="'+esc(mv)+'" target="_blank" rel="noopener">Il mio video</a>';
  o+='<input type="url" id="v_'+key+'" data-a="video" data-k="'+key+'" placeholder="Incolla il link del tuo video" value="'+esc(mv)+'" aria-label="Link del tuo video per '+esc(e.n)+'"></div>';
+ o+='<label class="lab" for="n_'+key+'">La mia nota su questo esercizio</label><textarea id="n_'+key+'" data-a="exNota" data-k="'+key+'" placeholder="Come lo cambi o lo adatti?">'+esc(S.note[key]||"")+'</textarea>';
  if(s.c.length>1)o+='<div class="row" style="margin-top:10px"><button type="button" class="btn sec sm" data-a="cambia" data-b="'+bi+'" data-s="'+si+'">Cambia esercizio</button></div>';
  return o+'</div>';
 }
@@ -569,13 +570,13 @@ function vLez(){
  var o='<div class="card"><h2>'+esc(L.aree.map(function(k){return TEMI[k].n;}).join(" + "))+'</h2><p class="mut">'+st.n+(st.n===1?" allievo":" allievi")+", "+st.c+(st.c===1?" campo":" campi")+", "+(kids?"bambini "+st.eta+" anni":"adulti")+", "+["","principiante","intermedio","avanzato"][st.lv]+", "+st.dur+" minuti"+(L.auto?". Tema scelto dall'app.":".")+'</p>';
  o+='<p class="obj" style="margin-top:10px"><b>'+(L.aree.length>1?'Obiettivi della lezione:':'Obiettivo della lezione:')+'</b> '+esc(L.aree.map(function(k){return (L.aree.length>1?TEMI[k].n+': ':'')+TEMI[k].ob;}).join(' '))+'</p>';
  if(st.al)o+='<p class="mut" style="margin-top:6px">Allievo: <b>'+esc(alName(st.al))+'</b></p>';
- o+='<span class="lab">Aree su cui lavori</span><div class="chips">'+Object.keys(TEMI).map(function(k){return '<button type="button" class="chip sm2" data-a="area" data-v="'+k+'" aria-pressed="'+(L.aree.indexOf(k)>=0)+'">'+TEMI[k].n+'</button>';}).join("")+'</div>';
+ o+='<span class="lab">Aree su cui lavori</span><div class="chips">'+Object.keys(TEMI).map(function(k){return '<button type="button" class="chip sm2" data-a="area" data-v="'+k+'" aria-pressed="'+(L.aree.indexOf(k)>=0)+'">'+TEMI[k].n+'</button>';}).join("")+'</div><p class="mut" id="areaMsg" role="status" style="margin-top:6px">'+esc(areaMsg||"Tocca un'area per aggiungerla o toglierla. La lezione si rifà. Riscaldamento, partita e defaticamento restano.")+'</p>';
  if(kids)o+='<div class="org">'+esc(ETA[st.eta])+'</div>';
  o+='<details><summary>Come conduci ogni esercizio, in 4 passi</summary><ul><li><b>Briefing (30 secondi):</b> dì cosa fate e qual è l\'obiettivo da contare.</li><li><b>Dimostrazione:</b> mostra il gesto una volta, lento.</li><li><b>Esecuzione:</b> fai giocare e dai una correzione breve alla volta.</li><li><b>Debriefing (30 secondi):</b> conta quante palle sono riuscite e dì una cosa da migliorare.</li></ul></details>';
  var mats={};L.blocks.forEach(function(b){b.slots.forEach(function(s){var e=slotEx(s);if(e.m)e.m.split(",").forEach(function(m){mats[m]=1;});});});
  var ml=Object.keys(mats).map(function(m){return MATN[m]+(st.mat[m]?"":" (non l'hai segnato)");});
  o+='<details><summary>Materiali da portare</summary><ul class="mat">'+(ml.length?ml.map(function(m){return '<li>'+esc(m)+'</li>';}).join(""):'<li>Solo racchette e palline.</li>')+'</ul></details>';
- o+='<div class="row" style="margin-top:14px"><button type="button" class="btn" data-a="campo">Modo campo</button>'+(L.saved?'<button type="button" class="btn sec" data-a="vaiScheda">Vedi nel registro</button>':'<button type="button" class="btn sec" data-a="salva">Salva nel registro</button>')+'</div></div>';
+ o+='<div class="row" style="margin-top:14px"><button type="button" class="btn" data-a="campo">Modo campo</button><button type="button" class="btn sec" data-a="chiedi">'+(askOpen?"Chiudi Claude":"Chiedi a Claude")+'</button>'+(L.saved?'<button type="button" class="btn sec" data-a="vaiScheda">Vedi nel registro</button>':'<button type="button" class="btn sec" data-a="salva">Salva nel registro</button>')+'</div></div>'+askPanel();
  L.blocks.forEach(function(b,bi){
   var tot=b.slots.reduce(function(a,s){return a+s.min;},0);
   o+='<section class="blk"><h2>'+BN[b.b]+'<span>'+tot+' min</span></h2>';
@@ -624,6 +625,27 @@ function vReg(){
   o+='<div class="row" style="margin-top:10px"><button type="button" class="btn sec sm" data-a="riapri" data-t="'+l.ts+'">Riapri</button><button type="button" class="btn sec sm" data-a="elim" data-t="'+l.ts+'">'+(l.conf?"Tocca per confermare":"Elimina")+'</button></div></div>';
  });
  return o;
+}
+function promptClaude(q){
+ var st=L.st,ar=L.aree.map(function(k){return TEMI[k].n;}).join(", ");
+ var t="Sono un maestro di padel con il corso ACSI Istruttore Nazionale, ho poca esperienza di conduzione. Uso la mia app PadelStep. Ti passo la lezione che ho preparato. Rispondi in italiano, con frasi brevi. Usa i termini della dispensa: diagonale, lungo linea, impugnatura, cesto, preparazione, impatto, finale.\n\n";
+ t+="LEZIONE\nAllievo o gruppo: "+(st.al?alName(st.al):"lezione libera")+"\nNumero allievi: "+st.n+", campi: "+st.c+"\nPubblico: "+(st.pub==="b"?"bambini "+st.eta+" anni":"adulti")+"\nLivello: "+["","principiante","intermedio","avanzato"][st.lv]+"\nDurata: "+st.dur+" minuti\nAree di lavoro: "+ar+"\n";
+ if(st.al){var c=cnt(st.al),k=Object.keys(c);if(k.length)t+="Aree già lavorate con questo allievo: "+k.map(function(x){return (TEMI[x]?TEMI[x].n:x)+" ("+c[x]+")";}).join(", ")+"\n";}
+ t+="\nESERCIZI DELLA LEZIONE\n";
+ L.blocks.forEach(function(b){b.slots.forEach(function(sl){var e=slotEx(sl);t+="- "+BN[b.b]+", "+sl.min+" min: "+e.n+". "+e.d;if(e.b==="m")t+=" Parte motoria: "+e.mo+" Parte tecnica: "+e.te+" Situazione di gioco: "+e.si;t+=" Obiettivo: "+e.o;if(S.note[e.i])t+=" Mia nota: "+S.note[e.i];t+="\n";});});
+ t+="\nIL MIO DUBBIO O LA MIA RICHIESTA\n"+(q&&q.trim()?q.trim():"(scrivi qui)")+"\n\n";
+ t+="Se proponi un esercizio nuovo o modificato, scrivilo così: nome, durata, organizzazione per il mio numero di allievi, dove mi metto io e dove sta il cesto, consegne, errori comuni, versione più facile, versione più difficile, obiettivo da contare.";
+ return t;
+}
+function askPanel(){
+ if(!askOpen)return "";
+ return '<div class="card"><h3>Chiedi a Claude</h3><p class="mut" style="margin-top:6px">Scrivi il dubbio. Il pulsante copia la lezione insieme alla tua domanda. Poi apri Claude e incolla il testo.</p><label class="lab" for="ask">Il tuo dubbio</label><textarea id="ask" data-a="askTxt" placeholder="Per esempio: Emma sbaglia il rovescio, cambia l\'esercizio 3.">'+esc(askTxt)+'</textarea><div class="row" style="margin-top:10px"><button type="button" class="btn" data-a="copiaAsk">Copia il testo</button><a class="btn sec" href="https:\/\/claude.ai/new" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Apri Claude</a></div><details><summary>Vedi il testo che viene copiato</summary><textarea readonly id="askPrev" style="min-height:180px">'+esc(promptClaude(askTxt))+'</textarea></details></div>';
+}
+function copia(text,btn){
+ function ok(){if(btn){var o=btn.textContent;btn.textContent="Copiato";setTimeout(function(){btn.textContent=o;},1800);}}
+ function fb(){var p=document.getElementById("askPrev");if(p){p.value=text;p.select();try{document.execCommand("copy");ok();}catch(e){}}}
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,fb);return;}}catch(e){}
+ fb();
 }
 function render(){
  ["prep","lez","reg"].forEach(function(t){var b=document.getElementById("tb-"+t);b.setAttribute("aria-selected",String(tab===t));});
@@ -677,7 +699,18 @@ document.addEventListener("click",function(ev){
   var A=alById(en.al);if(A){A.n=en.n;A.pub=en.pub;A.eta=en.eta;A.lv=en.lv;}
   save();render();return;}
  if(a==="vaiScheda"){R.sel=L.st.al||"free";tab="reg";render();window.scrollTo(0,0);return;}
- if(a==="area"){var k2=t.getAttribute("data-v"),na=L.aree.slice(),ix=na.indexOf(k2);if(ix>=0){if(na.length>1)na.splice(ix,1);else return;}else{if(na.length>=4)return;na.push(k2);}rigenera(na);render();return;}
+ if(a==="area"){
+  var k2=t.getAttribute("data-v"),na=L.aree.slice(),ix=na.indexOf(k2);
+  if(ix>=0){
+   if(na.length>1){na.splice(ix,1);areaMsg="Tolta l'area "+TEMI[k2].n+". La lezione è stata rifatta.";}
+   else{na=[proponi(L.st)];areaMsg="Era l'unica area. Ho scelto "+TEMI[na[0]].n+" come tema proposto.";}
+  }else{
+   if(na.length>=4){areaMsg="Massimo 4 aree. Togline una prima di aggiungerne un'altra.";render();return;}
+   na.push(k2);areaMsg="Aggiunta l'area "+TEMI[k2].n+". La lezione è stata rifatta.";
+  }
+  rigenera(na);render();return;}
+ if(a==="chiedi"){askOpen=!askOpen;render();return;}
+ if(a==="copiaAsk"){var q=document.getElementById("ask");askTxt=q?q.value:askTxt;copia(promptClaude(askTxt),t);return;}
  if(a==="areaAuto"){st.aree=[];save();render();return;}
  if(a==="areaP"){var k6=t.getAttribute("data-v"),i6=st.aree.indexOf(k6);if(i6>=0)st.aree.splice(i6,1);else if(st.aree.length<4)st.aree.push(k6);save();render();return;}
  if(a==="eArea"){var e1=ent(t.getAttribute("data-t")),k3=t.getAttribute("data-v");if(e1){var ar=(e1.aree&&e1.aree.length?e1.aree:[e1.tema]).slice(),i3=ar.indexOf(k3);if(i3>=0){if(ar.length>1)ar.splice(i3,1);}else ar.push(k3);e1.aree=ar;save();render();}return;}
@@ -700,6 +733,8 @@ document.addEventListener("change",function(ev){
  var t=ev.target, a=t.getAttribute&&t.getAttribute("data-a"); if(!a)return;
  
  if(a==="video"){var v=t.value.trim();if(v&&!/^https?:\/\//i.test(v))v="https:\/\/"+v;if(v)S.video[t.getAttribute("data-k")]=v;else delete S.video[t.getAttribute("data-k")];save();render();}
+ if(a==="askTxt"){askTxt=t.value;}
+ if(a==="exNota"){var kx=t.getAttribute("data-k");if(t.value.trim())S.note[kx]=t.value;else delete S.note[kx];save();}
  if(a==="nota"){var n1=ent(t.getAttribute("data-t"));if(n1){n1.nota=t.value;save();}}
  if(a==="next"){var n2=ent(t.getAttribute("data-t"));if(n2){n2.next=t.value;save();}}
  if(a==="fatto"){var k5=t.getAttribute("data-k");if(t.checked)L.done[k5]=1;else delete L.done[k5];if(L.entry){L.entry.done=Object.assign({},L.done);save();}}
