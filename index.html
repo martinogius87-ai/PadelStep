@@ -148,6 +148,8 @@ nav button[aria-selected=true]{background:var(--navy);color:#fff;border-color:va
 .tag.on{background:var(--navy);color:#fff}
 .alcard{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .alcard .t{display:flex;justify-content:space-between;gap:8px}
+button,select,summary,label,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ver{margin-top:28px;text-align:center;color:var(--mut);font-size:12px}
 </style>
 </head>
 <body>
@@ -160,6 +162,7 @@ nav button[aria-selected=true]{background:var(--navy);color:#fff;border-color:va
     <button role="tab" id="tb-reg" data-a="tab" data-v="reg">Registro</button>
   </nav>
   <main id="app"></main>
+  <p class="ver">PadelStep v5 · 27 ott 11:45</p>
 </div>
 <div id="campo" hidden></div>
 
