@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>PadelStep</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PadelStep">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#061a34">
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" href="PadelStep-icona.png">
+<link rel="icon" type="image/png" href="PadelStep-icona.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+html{padding-top:env(safe-area-inset-top,0px)}
+/* Layout: una colonna stretta pensata per il telefono. Barra con tre schede, scheda lezione a blocchi, modo campo a tutto schermo. */
+/* Stile club: blu notte, azzurro e oro. Intestazione a stemma, tabellone per i minuti. */
+:root{
+  --bg:#eef3f9; --surf:#ffffff; --surf2:#e0eaf5; --fg:#0b1f3a; --mut:#4f627c; --line:#c9d7e8;
+  --acc:#0b2a55; --acc-fg:#ffffff; --acc-weak:#dbe9f7; --warn:#8a5200; --warn-weak:#fbebcc;
+  --gold:#b98a1f; --sky:#6cabdd; --navy:#0b2a55;
+  --court:#2d6aa6; --court-line:#f4f7fb; --arrow:#ffd23f;
+  --fd:'Barlow Condensed','Arial Narrow',system-ui,sans-serif; --fb:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08142a; --surf:#0f2142; --surf2:#172c52; --fg:#eaf1fb; --mut:#9fb3cf; --line:#223963;
+  --acc:#6cabdd; --acc-fg:#08142a; --acc-weak:#142c52; --warn:#f0b64a; --warn-weak:#3a2c10; --gold:#d9b45a;
+  --court:#2a5f96; --court-line:#e8eef6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08142a; --surf:#0f2142; --surf2:#172c52; --fg:#eaf1fb; --mut:#9fb3cf; --line:#223963;
+  --acc:#6cabdd; --acc-fg:#08142a; --acc-weak:#142c52; --warn:#f0b64a; --warn-weak:#3a2c10; --gold:#d9b45a;
+  --court:#2a5f96; --court-line:#e8eef6; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--fb);font-size:16px;line-height:1.45;
+  padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:640px;margin:0 auto}
+h1,h2,h3{font-family:var(--fd);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:30px} h2{font-size:24px} h3{font-size:20px}
+p{margin:0}
+header{padding-block:18px 8px}
+header p{color:var(--mut);font-size:14px}
+nav{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+nav button{flex:1;font:600 15px var(--fb);padding:10px 6px;border:1px solid var(--line);background:var(--surf);color:var(--fg);border-radius:10px;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+.lab{display:block;font:600 12px var(--fb);text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:14px 0 6px}
+.lab:first-child{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 16px var(--fb);min-width:44px;min-height:44px;padding:8px 14px;border:1px solid var(--line);background:var(--surf2);color:var(--fg);border-radius:10px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
+select,textarea,input[type=url],input[type=text]{width:100%;font:16px var(--fb);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg)}
+textarea{min-height:70px;resize:vertical}
+.btn{font:600 17px var(--fb);padding:13px 18px;border-radius:12px;border:1px solid var(--acc);background:var(--acc);color:var(--acc-fg);cursor:pointer;min-height:48px}
+.btn.sec{background:transparent;color:var(--acc)}
+.btn.sm{font-size:15px;padding:8px 12px;min-height:40px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.prop{background:var(--acc-weak);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:15px}
+.mut{color:var(--mut);font-size:14px}
+.blk{margin-top:22px}
+.blk>h2{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.blk>h2 span{font:600 15px var(--fb);color:var(--mut)}
+.ex{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}
+.ex h3{display:flex;justify-content:space-between;gap:8px}
+.min{font:700 18px var(--fd);background:var(--surf2);padding:2px 10px;border-radius:8px;white-space:nowrap;align-self:flex-start}
+.org{background:var(--surf2);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:15px}
+.ex p.d{margin-top:8px}
+.obj{margin-top:10px;font-weight:600}
+.obj b{color:var(--acc)}
+details{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;font-weight:600;min-height:32px}
+details ul{margin:6px 0 0;padding-left:20px}
+.warn{background:var(--warn-weak);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:600;display:inline-block;margin-top:8px}
+.court{width:100%;max-width:170px;height:auto;display:block;margin:8px 0}
+.cf{fill:var(--court)} .cl{stroke:var(--court-line);stroke-width:1.6;fill:none}
+.zn{fill:var(--arrow);fill-opacity:.28;stroke:var(--arrow);stroke-width:1.2}
+.ar{stroke:var(--arrow);stroke-width:2.4;fill:none}
+.pm{fill:#ff8a3d} .pa{fill:#fff} .pt{font:700 9px var(--fb);text-anchor:middle;fill:#1b2420}
+.zt{font:700 14px var(--fb);fill:#fff;text-anchor:middle}
+.vid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.vid a{font-weight:600;color:var(--acc)}
+.vid input{flex:1 1 180px}
+.mat li{margin:2px 0}
+.log{margin-top:10px}
+.log .t{display:flex;justify-content:space-between;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:24px 8px}
+#campo{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow-y:auto}
+#campo .big{font:700 84px var(--fd);text-align:center;font-variant-numeric:tabular-nums;line-height:1;margin:14px 0}
+#campo .big.fine{color:var(--warn)}
+#campo .bar{height:8px;background:var(--surf2);border-radius:4px;overflow:hidden}
+#campo .bar i{display:block;height:100%;background:var(--acc);width:0}
+.kp{margin:6px 0 0;padding-left:20px}
+@media (prefers-reduced-motion:no-preference){.chip,.btn,nav button{transition:background .12s}}
+
+h1,h2,h3{text-transform:uppercase;letter-spacing:.03em}
+h1{font-size:34px;font-style:italic} h2{font-size:25px} h3{font-size:20px}
+.hero{display:flex;align-items:center;gap:14px;margin-top:max(12px,env(safe-area-inset-top,0px));padding:16px;border-radius:16px;color:#fff;border-bottom:4px solid #d9b45a;
+  background:linear-gradient(135deg,#0b2a55 0%,#0a1f40 100%);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(#ffffff14,#ffffff14) 78% 0/2px 100% no-repeat,
+  linear-gradient(#ffffff14,#ffffff14) 0 62%/100% 2px no-repeat;pointer-events:none}
+.hero img{height:60px;width:auto;flex:none;position:relative;z-index:1}
+.hero div{position:relative;z-index:1;min-width:0}
+.hero h1{color:#fff;line-height:1}
+.hero p{color:#9fc6ea;font:600 13px var(--fb);letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+header{padding-block:0 4px}
+nav{padding-block:10px}
+nav button{font-family:var(--fd);font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.05em;border-radius:8px}
+nav button[aria-selected=true]{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:inset 0 -3px 0 #d9b45a}
+:root[data-theme="dark"] nav button[aria-selected=true]{background:#1c3a6b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) nav button[aria-selected=true]{background:#1c3a6b}}
+.min{background:#0b2a55;color:#e8c766;font:700 20px var(--fd);letter-spacing:.04em;border-radius:6px;padding:2px 10px;font-variant-numeric:tabular-nums;box-shadow:inset 0 0 0 1px #d9b45a55}
+.blk>h2{border-bottom:3px solid var(--sky);padding-bottom:6px}
+.blk>h2 span{font:700 16px var(--fd);color:var(--mut);letter-spacing:.06em}
+.ex{border-left:5px solid var(--sky)}
+.chip{font-weight:600;border-radius:8px}
+.chip[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:inset 0 -3px 0 #d9b45a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed=true]{background:#1c3a6b;border-color:#6cabdd}}
+:root[data-theme="dark"] .chip[aria-pressed=true]{background:#1c3a6b;border-color:#6cabdd}
+.btn{font-family:var(--fd);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.05em;border-radius:8px;background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 #d9b45a}
+.btn.sec{background:transparent;color:var(--fg);border-color:var(--fg);box-shadow:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{background:#6cabdd;border-color:#6cabdd;color:#08142a}:root:not([data-theme="light"]) .btn.sec{background:transparent;color:#eaf1fb;border-color:#6cabdd;box-shadow:none}}
+:root[data-theme="dark"] .btn{background:#6cabdd;border-color:#6cabdd;color:#08142a}
+:root[data-theme="dark"] .btn.sec{background:transparent;color:#eaf1fb;border-color:#6cabdd;box-shadow:none}
+.btn.sm{font-size:17px}
+.obj b,.vid a{color:var(--acc)}
+.prop{border-left:5px solid #d9b45a}
+#campo .big{font-size:96px;color:var(--fg)}
+
+.dove{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin-top:12px;background:var(--surf2);border-radius:12px;padding:12px}
+.dove .court{max-width:150px;margin:0;flex:none}
+.dove>div{flex:1 1 180px;min-width:0;font-size:15px}
+.dove ul{margin:4px 0 6px;padding-left:18px}
+.pw{fill:#fff;fill-opacity:.55;stroke:#fff;stroke-width:1}
+.fasi{display:grid;gap:6px;margin-top:10px}
+.fasi div{background:var(--surf2);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.fasi b{font:700 15px var(--fd);text-transform:uppercase;letter-spacing:.05em;color:var(--acc)}
+.fatto{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:600}
+.fatto input,.chk input{width:22px;height:22px;accent-color:var(--acc)}
+.chk{display:grid;gap:6px}.chk label{display:flex;gap:8px;align-items:center;min-height:32px}
+.chip.sm2{min-height:36px;padding:4px 10px;font-size:14px}
+.tag{display:inline-block;font:600 13px var(--fb);padding:4px 10px;border-radius:999px;background:var(--surf2);color:var(--mut)}
+.tag.on{background:var(--navy);color:#fff}
+.alcard{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.alcard .t{display:flex;justify-content:space-between;gap:8px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header><div class="hero"><img src="data:image/png;base64,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" alt="PadelStep" width="65" height="60"><div><h1>PadelStep</h1><p>La tua lezione, pronta</p></div></div></header>
+  <nav role="tablist" aria-label="Sezioni">
+    <button role="tab" id="tb-prep" data-a="tab" data-v="prep">Prepara</button>
+    <button role="tab" id="tb-lez" data-a="tab" data-v="lez">Lezione</button>
+    <button role="tab" id="tb-reg" data-a="tab" data-v="reg">Registro</button>
+  </nav>
+  <main id="app"></main>
+</div>
+<div id="campo" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- Temi ---------- */
+var TEMI={
+ imp:{n:"Impugnatura e controllo",ob:"10 palleggi di fila con l'impugnatura corretta."},
+ dir:{n:"Diritto",ob:"6 diritti su 10 oltre la rete e dentro il campo."},
+ rov:{n:"Rovescio",ob:"5 rovesci su 10 oltre la rete e dentro il campo."},
+ vol:{n:"Volée",ob:"6 volée su 10 in campo, con il corpo fermo e stabile."},
+ ban:{n:"Bandeja e vibora",ob:"5 bandeja su 10 profonde, senza perdere la posizione a rete."},
+ smash:{n:"Smash",ob:"4 smash su 10 in campo dopo un passo laterale corretto."},
+ bat:{n:"Battuta e risposta",ob:"6 battute su 10 nel quadrato di servizio giusto."},
+ par:{n:"Parete",ob:"5 palle su 10 giocate bene dopo la parete."},
+ lob:{n:"Lob e difesa",ob:"5 lob su 10 che superano gli avversari e cadono nel fondo."},
+ pos:{n:"Posizione e spostamenti",ob:"La coppia resta compatta per 8 punti di fila."},
+ tat:{n:"Tattica di coppia",ob:"La coppia sale a rete insieme in 4 punti su 8."}
+};
+var ORD={
+ a1:["imp","dir","rov","vol","bat","par","pos","lob"],
+ a2:["dir","rov","vol","lob","par","ban","bat","smash","pos","tat"],
+ a3:["ban","smash","par","lob","vol","tat","bat","pos","dir","rov"],
+ b:["imp","pos","dir","rov","vol","bat"]
+};
+var ALIAS={tat:["pos","lob","vol"]};
+var ETA={"5-7":"Racchetta corta, palline morbide, campo ridotto. Esercizi da 4 o 5 minuti. Molto gioco, poche spiegazioni.",
+ "8-10":"Palline a bassa compressione. Spiega in 20 secondi e fai giocare subito.",
+ "11-14":"Palline normali, intensità più bassa che con gli adulti. Tre parti di gioco, una di correzione."};
+var MATN={cesto:"Cesto di palline",palline:"Palline",coni:"Coni",cerchi:"Cerchi",scaletta:"Scaletta propriocettiva",bande:"Bande elastiche",step:"Step"};
+
+/* ---------- Libreria (testi scritti in parole mie) ---------- */
+var LIB=[];
+function X(o){LIB.push(Object.assign({l:"123",p:"ab",k:"tutti",m:"",x:1,y:8,g:2,s:"",t:"*"},o));}
+/* b: r riscaldamento, t tecnica, s situazioni, g gioco, d defaticamento */
+X({i:"r1",b:"r",n:"Mobilità in movimento",p:"a",g:1,d:"Cammina con il gruppo lungo la linea di fondo e quella di servizio. Alterna passo laterale, passo incrociato, skip basso e rotazione delle spalle. Chiudi con 3 allunghi brevi verso la rete.",c:"Spalle rilassate. Passi piccoli e rapidi. Respira piano.",e:"Troppa fretta. Spalle alzate.",f:"Solo camminata e rotazioni.",h:"Aggiungi salti brevi tra un passo e l'altro.",o:"Tutti caldi prima del primo colpo.",q:"riscaldamento padel mobilità prima della lezione"});
+X({i:"r2",b:"r",n:"Scaletta e coni",m:"scaletta,coni",g:2,d:"Stendi la scaletta e metti 4 coni a 5 metri. Ognuno fa tre schemi: un piede per quadrato, due piedi per quadrato, laterale. Dopo ogni schema, scatto fino al cono.",c:"Testa alta. Appoggio sull'avampiede. Gomiti piegati.",e:"Sguardo sui piedi. Passi troppo lunghi.",f:"Solo il primo schema, a passo lento.",h:"Aggiungi la racchetta in mano e un colpo a vuoto a fine scaletta.",o:"3 passaggi puliti, senza toccare le corde della scaletta.",q:"scaletta propriocettiva esercizi padel"});
+X({i:"r3",b:"r",n:"Palleggio morbido a metà campo",k:"maestro",y:2,g:1,d:"Palleggiate tra le linee di servizio per 2 minuti, con palla alta e lenta. Poi allargate piano verso il fondo, senza forzare.",c:"Conta i palleggi. Palla alta, mano morbida.",e:"Colpi forti. Racchetta stretta.",f:"Palleggio a mano, poi con la racchetta.",h:"Palleggio solo di rovescio per 1 minuto.",o:"20 scambi di fila.",s:"par",q:"padel riscaldamento palleggio mini padel"});
+X({i:"r4",b:"r",n:"Caccia ai colori",p:"b",m:"coni",x:2,g:1,d:"Disponi i coni di colori diversi sul campo. Dici un colore e i bambini corrono a toccarlo. Poi chiedi di toccarlo con la racchetta, poi camminando indietro.",c:"Guarda me. Parti al mio via. Torna al centro.",e:"Partenze in anticipo. Corse senza guardare.",f:"Si cammina invece di correre.",h:"Dici due colori in fila e il bambino li tocca in ordine.",o:"Tutti toccano 5 colori senza fermarsi.",q:"giochi riscaldamento bambini tennis padel coni"});
+X({i:"r5",b:"r",n:"Equilibrio con la pallina",p:"b",m:"cerchi",g:1,d:"Ogni bambino cammina con la pallina in equilibrio sulla racchetta. Passa dentro i cerchi a terra e torna al punto di partenza.",c:"Occhi sulla pallina. Passi piccoli. Racchetta piatta.",e:"Racchetta inclinata. Corsa troppo rapida.",f:"Pallina grande e cerchi più vicini.",h:"Aggiungi un giro intero su sé stesso dentro un cerchio.",o:"Percorso completo senza far cadere la pallina.",q:"giochi equilibrio pallina racchetta bambini"});
+X({i:"r6",b:"r",n:"Staffetta con la pallina",p:"b",x:2,g:2,d:"Due squadre. Ogni bambino porta la pallina sulla racchetta fino al cono e torna. Poi tocca al compagno.",c:"Cammina veloce, non correre. Se cade, riparti da lì.",e:"Si corre e la pallina cade.",f:"Una sola squadra contro il tempo.",h:"Palleggio ogni 3 passi.",o:"La squadra finisce il giro in meno di un minuto.",q:"staffetta bambini racchetta pallina"});
+X({i:"r7",b:"r",n:"Bande per spalle e anche",p:"a",m:"bande",g:1,d:"Con la banda elastica fai 10 aperture di spalle, 10 passi laterali con la banda alle ginocchia, 10 rotazioni del busto.",c:"Schiena dritta. Movimento lento. Non perdere la tensione.",e:"Spalle in avanti. Ginocchia che cedono.",f:"Banda più morbida.",h:"Aggiungi una pausa di 2 secondi a fine movimento.",o:"3 serie senza perdere postura.",q:"bande elastiche riscaldamento spalle padel"});
+X({i:"r8",b:"r",n:"Lancia e prendi in diagonale",k:"coppie",x:1,g:1,d:"Lanciate la pallina in diagonale con la mano del colpo, poi con l'altra. Un minuto per mano. Poi lo stesso gioco con la racchetta, palla bassa e lenta.",c:"Guarda la pallina fino alla mano. Piedi in movimento.",e:"Lanci senza muovere i piedi.",f:"Lanci da vicino.",h:"Aggiungi un rimbalzo sulla parete.",o:"15 lanci di fila presi senza errori.",q:"riscaldamento coordinazione padel palline"});
+
+X({i:"d1",b:"d",n:"Stretching guidato",p:"a",g:1,d:"Sei allunghi da 20 secondi: spalla, avambraccio, quadricipite, polpaccio, schiena, collo. Guidi tu il ritmo.",c:"Respira piano. Non rimbalzare.",e:"Allunghi dolorosi.",f:"Meno secondi.",h:"Aggiungi un secondo giro.",o:"Tutti seguono la sequenza completa.",q:"stretching dopo padel"});
+X({i:"d2",b:"d",n:"Ultimi colpi liberi e parere",g:1,d:"Ognuno gioca 5 colpi liberi. Poi in cerchio ogni allievo dice una cosa riuscita e una da portare alla prossima lezione.",c:"Parla per ultimo tu. Ascolta.",e:"Troppe correzioni a fine lezione.",f:"Solo la cosa riuscita.",h:"L'allievo sceglie il tema della prossima volta.",o:"Ogni allievo dice due frasi.",q:"feedback fine lezione allenatore"});
+X({i:"d3",b:"d",n:"Bersaglio finale",p:"b",m:"cerchi,palline",g:1,d:"Ogni bambino ha 3 palline e prova a colpire un cerchio a terra. Poi applauso e saluto.",c:"Un tiro alla volta. Aspetta il tuo turno.",e:"Tiri forti.",f:"Cerchio più vicino.",h:"Cerchio più piccolo.",o:"Almeno 1 centro su 3.",q:"gioco bersaglio bambini padel"});
+X({i:"d4",b:"d",n:"Respiro e domande",p:"a",g:1,d:"Cinque respiri lenti. Poi chiedi: cosa era chiaro? Cosa no? Segna le risposte per la prossima lezione.",c:"Domande aperte. Ascolta senza interrompere.",e:"Rispondere al posto dell'allievo.",f:"Una sola domanda.",h:"L'allievo ripete il compito di casa.",o:"L'allievo dice una cosa chiara e una da rivedere.",q:"defaticamento padel"});
+
+X({i:"im1",b:"t",t:"imp",l:"1",n:"L'impugnatura e il palleggio in aria",g:1,d:"Mostra l'impugnatura continental. La V tra pollice e indice cade sul bordo superiore del manico. Fai trovare l'impugnatura a ognuno, poi 10 colpi a vuoto e 10 palleggi in aria.",c:"Mano rilassata. Polso fermo. Impugnatura morbida.",e:"Impugnatura troppo stretta. Mano troppo bassa sul manico.",f:"Solo palleggi in aria senza muoversi.",h:"Cambia impugnatura tra diritto e volée.",o:"10 palleggi in aria di fila con l'impugnatura corretta.",q:"impugnatura continental padel come impugnare racchetta"});
+X({i:"im2",b:"t",t:"imp",l:"1",n:"Palleggio a terra e in aria",g:1,d:"Palleggia sulla racchetta alternando le due facce. Poi lascia rimbalzare la pallina a terra e riprendila con la racchetta. Gli adulti contano, i bambini sfidano il loro record.",c:"Guarda la pallina. Racchetta piatta. Ginocchia morbide.",e:"Colpi troppo alti. Braccio rigido.",f:"Solo palleggio a terra.",h:"Palleggio camminando in avanti.",o:"15 palleggi di fila.",q:"controllo pallina racchetta padel principianti"});
+X({i:"im3",b:"t",t:"imp",l:"1",n:"Colpire piano contro la parete",m:"palline",g:2,d:"A tre metri dalla parete di fondo, lancia la pallina, lasciala rimbalzare una volta e colpiscila piano verso la parete. Lasciala tornare e ripeti.",c:"Un rimbalzo, poi colpo. Colpo basso e morbido.",e:"Colpire la pallina al volo. Troppa forza.",f:"Due metri dalla parete.",h:"Alterna diritto e rovescio.",o:"8 colpi di fila contro la parete.",q:"principianti padel colpire contro parete esercizio"});
+
+X({i:"di1",b:"t",t:"dir",l:"1",k:"cesto",m:"cesto,palline",g:1,s:"cesto",n:"Diritto dal cesto, palla morbida",d:"Stai nel campo opposto vicino alla rete. Lancia la palla con un rimbalzo, a metà altezza, sul lato del diritto. L'allievo gioca ogni palla verso il centro del campo.",c:"Preparazione anticipata. Spalle di lato. Impatto davanti al corpo. Finale alto sulla spalla opposta.",e:"Colpo troppo vicino al corpo. Polso che cede. Piedi fermi.",f:"Lancia più lento e più vicino all'allievo.",h:"Chiedi un bersaglio dietro la linea di servizio.",o:"6 colpi su 10 oltre la rete e dentro il campo.",q:"diritto padel principianti tecnica"});
+X({i:"di2",b:"t",t:"dir",l:"12",k:"coppie",s:"cross",n:"Diritto in cross",g:2,d:"Due giocatori in diagonale. Si palleggia in diagonale solo di diritto, da fondo campo. Contate gli scambi e provate a battere il record.",c:"Palla alta oltre la rete. Torna al centro dopo ogni colpo.",e:"Si guarda la palla e non si torna al centro.",f:"Palleggio dopo il primo rimbalzo, senza fretta.",h:"Gioca un diritto profondo e uno corto, in alternanza.",o:"10 scambi di fila.",q:"diritto diagonale padel esercizio coppie"});
+X({i:"di3",b:"t",t:"dir",l:"23",k:"cesto",m:"cesto,palline,coni",g:2,s:"cesto",n:"Diritto a bersaglio",d:"Metti 2 coni vicino alla parete di fondo avversaria. L'allievo gioca il diritto e prova a passare tra i coni, in profondità.",c:"Spalle chiuse. Colpo davanti. Finale lungo verso il bersaglio.",e:"Colpo corto. Si guarda il bersaglio troppo presto.",f:"Coni più larghi.",h:"Coni più stretti e lancio più veloce.",o:"4 su 10 nella zona dei coni.",q:"diritto profondo padel esercizio bersaglio"});
+X({i:"di4",b:"t",t:"dir",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Diritto con taglio",d:"Mostra il movimento dall'alto verso il basso, con la faccia della racchetta leggermente aperta. L'allievo gioca palle lente e cerca il rimbalzo basso. Poi confronta con un colpo piatto.",c:"Racchetta alta all'inizio. Scendi sotto la palla. Finisci davanti.",e:"Faccia troppo aperta. Colpo che muore in rete.",f:"Faccia meno aperta, palla più alta.",h:"Taglio in corsa, con palla più veloce.",o:"5 su 10 con rimbalzo basso dopo la parete.",q:"diritto tagliato padel tecnica slice"});
+X({i:"ro1",b:"t",t:"rov",l:"1",k:"cesto",m:"cesto,palline",g:1,s:"cesto",n:"Rovescio dal cesto, palla morbida",d:"Come il diritto, ma sul lato del rovescio. Lancia a metà altezza con un rimbalzo. L'allievo ruota le spalle, porta indietro la racchetta e colpisce davanti.",c:"Spalla verso la rete. Colpisci davanti. Braccio disteso.",e:"Si colpisce troppo tardi. Gomito che si chiude.",f:"Lancio più lento e più basso.",h:"Chiedi il colpo in diagonale.",o:"5 colpi su 10 oltre la rete e dentro il campo.",q:"rovescio padel principianti tecnica"});
+X({i:"ro2",b:"t",t:"rov",l:"12",k:"coppie",s:"par",n:"Rovescio lungo linea",g:2,d:"Due giocatori sulla stessa fascia, uno per lato della rete. Si palleggia solo di rovescio lungo la linea. Contate gli scambi.",c:"Piedi di lato. Palla alta. Torna al centro.",e:"Colpire troppo vicino al corpo.",f:"Un rimbalzo in più e palla lenta.",h:"Rovescio profondo e uno corto, in alternanza.",o:"8 scambi di fila.",q:"rovescio lungo linea padel esercizio coppie"});
+X({i:"ro3",b:"t",t:"rov",l:"23",k:"cesto",m:"cesto,palline,coni",g:3,s:"cesto",n:"Rovescio profondo a bersaglio",d:"Metti 2 coni vicino al fondo. L'allievo gioca il rovescio e prova a passare tra i coni, con palla alta e profonda.",c:"Spalle ben ruotate. Finale lungo.",e:"Colpo corto. Sguardo troppo presto sul bersaglio.",f:"Coni più larghi.",h:"Lancio più veloce.",o:"4 su 10 nella zona dei coni.",q:"rovescio profondo padel esercizio"});
+
+X({i:"vo1",b:"t",t:"vol",l:"1",k:"cesto",m:"cesto,palline",g:1,s:"rete",n:"Volée di blocco dal cesto",d:"L'allievo sta a un metro e mezzo dalla rete. Lancia palle lente, a mezza altezza, sul diritto e poi sul rovescio. Il colpo è corto, senza grande movimento.",c:"Racchetta davanti. Gomito davanti al corpo. Blocca e accompagna.",e:"Braccio che parte troppo indietro. Polso molle.",f:"Palle più lente e tutte sul diritto.",h:"Alterna diritto e rovescio senza avviso.",o:"6 volée su 10 in campo.",q:"volée padel principianti tecnica"});
+X({i:"vo2",b:"t",t:"vol",l:"12",k:"coppie",s:"rete",n:"Volée contro volée",g:2,d:"Due giocatori a rete, uno per lato. Si scambiano volée corte e lente. Ogni 10 scambi fate un passo indietro.",c:"Racchetta davanti. Passi piccoli. Colpo corto.",e:"Colpi forti. Racchetta che cade.",f:"Una volée e un rimbalzo, alternati.",h:"Volée solo di rovescio.",o:"15 scambi di fila.",q:"volée contro volée padel esercizio"});
+X({i:"vo3",b:"t",t:"vol",l:"23",k:"cesto",m:"cesto,palline,coni",g:3,s:"rete",n:"Volée profonda a zona",d:"L'allievo sta a rete. Lancia palle a diverse altezze. Chiedi la volée profonda verso due coni vicino al fondo.",c:"Passo verso la palla. Blocca e spingi in avanti.",e:"Volée corta. Corpo che si apre.",f:"Zona più grande.",h:"Aggiungi un passo indietro dopo ogni colpo.",o:"5 su 10 nella zona dei coni.",q:"volée profonda padel esercizio"});
+X({i:"vo4",b:"t",t:"vol",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"rete",n:"Volée alta",d:"Lancia palle alte sulla testa dell'allievo. Chiedi un passo indietro e un colpo davanti al corpo, con braccio disteso.",c:"Passo indietro. Colpo sopra la testa, davanti.",e:"Colpo dietro la testa. Braccio piegato.",f:"Palle meno alte.",h:"Lancia ancora più alto e più veloce.",o:"4 su 10 in campo.",q:"volée alta padel tecnica"});
+
+X({i:"ba1",b:"t",t:"ban",l:"2",p:"a",g:1,s:"rete",n:"Bandeja a vuoto",d:"Senza palla, l'allievo ripete il gesto: lato del corpo verso la rete, racchetta alta, colpo corto dall'alto verso il basso e rientro. Gli mostri il gesto una volta, lento.",c:"Corpo di lato. Racchetta alta. Colpo corto. Rientro in due passi.",e:"Braccio troppo teso. Colpo troppo largo.",f:"Rallenta il gesto.",h:"Aggiungi il passo indietro prima del gesto.",o:"10 gesti corretti di fila.",q:"bandeja padel tecnica spiegata"});
+X({i:"ba2",b:"t",t:"ban",l:"2",p:"a",k:"cesto",m:"cesto,palline",g:2,s:"cesto",n:"Bandeja dal cesto",d:"Lancia un lob dal campo opposto. L'allievo arretra, gira il corpo e gioca la bandeja verso il fondo, con colpo corto e controllato.",c:"Gira il corpo presto. Racchetta alta. Colpisci davanti. Ricomponi.",e:"Si colpisce dietro la testa. Palla troppo corta.",f:"Lob più basso e più lento.",h:"Lob più lungo e verso un lato.",o:"5 su 10 oltre il fondo della linea di servizio.",q:"bandeja padel esercizio dal cesto"});
+X({i:"ba3",b:"t",t:"ban",l:"23",p:"a",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Bandeja e rientro a rete",d:"Dopo ogni bandeja l'allievo torna alla posizione a rete in due passi. Lanci il lob successivo appena è tornato in posizione.",c:"Bandeja, due passi, racchetta pronta.",e:"Rimane indietro dopo il colpo.",f:"Aspetta il segnale prima del lob successivo.",h:"Lanci subito, senza pausa.",o:"6 rientri corretti su 10.",q:"bandeja rientro rete padel esercizio"});
+X({i:"ba4",b:"t",t:"ban",l:"3",p:"a",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Vibora",d:"Mostra il colpo laterale con taglio, un po' più veloce della bandeja. L'allievo prova dieci palline lente, poi dieci a ritmo normale.",c:"Taglio laterale. Colpo più teso. Piedi stabili.",e:"Il colpo diventa uno smash. Si perde la direzione.",f:"Ripeti con la bandeja.",h:"Aggiungi un bersaglio nel corridoio laterale.",o:"4 su 10 che rimangono bassi dopo la parete.",q:"vibora padel tecnica"});
+
+X({i:"sm1",b:"t",t:"smash",l:"12",k:"cesto",m:"cesto,palline",g:2,s:"cesto",n:"Smash dal cesto",d:"Lancia un lob alto e lento. L'allievo fa un passo laterale, porta la racchetta sopra la testa e colpisce davanti, con braccio disteso.",c:"Passo laterale. Mano sinistra verso la palla. Colpo in alto.",e:"Si resta sotto la palla. Braccio piegato.",f:"Lob più basso, con mano sinistra verso la palla.",h:"Lob più alto e più lungo.",o:"4 su 10 in campo.",q:"smash padel tecnica principianti"});
+X({i:"sm2",b:"t",t:"smash",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Smash e recupero",d:"Dopo ogni smash l'allievo torna in posizione a rete. Lancia il lob successivo appena è tornato.",c:"Colpisci, torna, racchetta pronta.",e:"Si guarda il colpo e si resta fermi.",f:"Aspetta il tuo segnale.",h:"Lancia con un secondo di anticipo.",o:"6 rientri corretti su 10.",q:"smash padel allenamento recupero posizione"});
+
+X({i:"ba5",b:"t",t:"bat",l:"1",k:"tutti",m:"palline",g:1,n:"Battuta: lancio e colpo",d:"La battuta si fa dal basso, sotto la vita, dopo un rimbalzo. Mostra il gesto, poi ognuno prova 10 battute in diagonale senza paura dell'errore.",c:"Rimbalzo, poi colpo sotto la vita. Racchetta in avanti.",e:"Colpire sopra la vita. Rimbalzo troppo lontano.",f:"Battuta da vicino alla rete.",h:"Battuta su un lato preciso.",o:"6 battute su 10 nel quadrato giusto.",q:"battuta padel regole tecnica"});
+X({i:"ba6",b:"t",t:"bat",l:"12",k:"coppie",g:2,s:"cross",n:"Battuta in diagonale su zona",m:"coni",d:"Metti un cono nel quadrato di servizio. Chi batte prova a colpire la zona vicino al cono. Il compagno risponde piano.",c:"Palla profonda nel quadrato. Fai la routine ogni volta.",e:"Battuta troppo forte.",f:"Zona più larga.",h:"Cono verso il vetro laterale.",o:"5 su 10 nella zona del cono.",q:"battuta padel zona esercizio"});
+X({i:"ba7",b:"t",t:"bat",l:"23",k:"coppie",g:3,s:"cross",n:"Risposta bassa ai piedi",d:"Uno batte, l'altro risponde corto e basso verso i piedi di chi sale a rete. Poi invertite.",c:"Palla bassa. Finale corto. Entra in campo.",e:"Risposta alta. Troppo lontano dalla linea.",f:"Servizio lento.",h:"Servizio con più velocità.",o:"4 su 10 che arrivano ai piedi.",q:"risposta battuta padel bassa"});
+
+X({i:"pa1",b:"t",t:"par",l:"12",k:"cesto",m:"cesto,palline",g:2,s:"parete",n:"Aspetta la parete di fondo",d:"Lancia forte la palla in modo che rimbalzi, tocchi il parete di fondo e rientri. L'allievo aspetta, si gira e colpisce solo dopo il rimbalzo sul vetro.",c:"Aspetta. Guarda la palla uscire dal vetro. Colpisci davanti.",e:"Colpire troppo presto. Troppa fretta.",f:"Palla più lenta.",h:"Palla più forte e più angolata.",o:"5 su 10 giocate in campo dopo il vetro.",q:"parete di fondo padel esercizio uscita"});
+X({i:"pa2",b:"t",t:"par",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"parete",n:"Uscita dalla parete laterale",d:"Lancia palle che toccano prima il campo e poi la parete laterale. L'allievo si sposta di lato, lascia scendere la palla e gioca in diagonale.",c:"Spazio dal vetro. Aspetta. Colpo basso e lungo.",e:"Troppo vicino alla parete. Colpo in ritardo.",f:"Palla lenta.",h:"Palle più veloci.",o:"4 su 10 in diagonale.",q:"parete laterale padel uscita esercizio"});
+X({i:"pa3",b:"t",t:"par",l:"2",k:"coppie",g:2,s:"parete",n:"Ping pong con il vetro",d:"Due giocatori da fondo campo. Ogni palla deve toccare il parete di fondo prima di tornare. Contate gli scambi.",c:"Palla bassa e lenta. Aspetta il rimbalzo.",e:"Colpi forti. Palla che esce.",f:"Colpo piano.",h:"Alterna la parete di fondo e quella laterale.",o:"8 scambi di fila.",q:"parete padel esercizio coppie"});
+
+X({i:"lo1",b:"t",t:"lob",l:"12",k:"cesto",m:"cesto,palline",g:2,s:"lob",n:"Lob dal cesto",d:"L'allievo sta a metà campo. Lancia palle basse. Chiedi un colpo che sale in alto e cade nel fondo avversario.",c:"Faccia della racchetta aperta. Finale alto. Spingi con le gambe.",e:"Lob corto. Si colpisce di polso.",f:"Palla più lenta e a mezza altezza.",h:"Aggiungi un bersaglio in fondo.",o:"5 lob su 10 oltre la linea di servizio.",q:"lob padel tecnica"});
+X({i:"lo2",b:"t",t:"lob",l:"23",k:"coppie",g:3,s:"lob",n:"Lob in diagonale",d:"Due giocatori in diagonale. Uno sta a rete, l'altro da fondo. Chi sta a rete manda la palla in lob e l'altro risponde in lob.",c:"Altezza prima di tutto. Cadere dietro la linea di servizio.",e:"Lob corto. Palla senza altezza.",f:"Lob più lento.",h:"Lob con effetto.",o:"6 lob su 10 profondi.",q:"lob padel diagonale esercizio"});
+X({i:"lo3",b:"t",t:"lob",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"lob",n:"Difesa di una palla alta",d:"Lancia palle alte verso il fondo. L'allievo arretra, aspetta il rimbalzo e risponde con un lob o con una palla alta e lenta.",c:"Passi indietro. Aspetta. Palla alta come risposta.",e:"Rimane troppo vicino alla rete.",f:"Palla meno alta.",h:"Palle più veloci.",o:"5 risposte su 10 alte e profonde.",q:"difesa padel palla alta"});
+
+X({i:"po1",b:"t",t:"pos",l:"1",g:1,s:"stz",n:"Passi sul campo a vuoto",m:"scaletta",d:"Fai 4 stazioni sul campo. Ogni stazione è un passo diverso: laterale, indietro, avanti, incrociato. Ripeti con la racchetta in mano e un colpo a vuoto.",c:"Gambe flesse. Passi piccoli. Ripresa del centro.",e:"Passi troppo lunghi.",f:"Solo due stazioni.",h:"Aggiungi un cambio di direzione.",o:"3 giri senza fermarsi.",q:"spostamenti padel esercizi footwork"});
+X({i:"po2",b:"t",t:"pos",l:"12",k:"coppie",g:2,s:"par",n:"Salita a rete in coppia",d:"Due giocatori da fondo. Quando il compagno gioca un lob, l'altro sale a rete. Poi salgono insieme.",c:"Sali insieme. Chi non gioca controlla il compagno.",e:"Uno sale e l'altro resta indietro.",f:"Parti da metà campo.",h:"Aggiungi un colpo di volée alla salita.",o:"4 salite su 8 insieme.",q:"salita a rete padel coppia"});
+X({i:"po3",b:"t",t:"pos",l:"23",k:"coppie",g:3,s:"par",n:"Coppia compatta",d:"Due giocatori sono legati da una corda immaginaria. Se uno va avanti, l'altro lo segue. Giocate a palla lenta per 5 minuti.",c:"Muovetevi insieme. Parlate: sali, scendi, mia.",e:"Uno corre da solo.",f:"Parla ad alta voce.",h:"Solo segnali con le mani.",o:"Distanza costante per 8 punti.",q:"coppia compatta padel posizione"});
+
+/* Situazioni di gioco */
+X({i:"s1",b:"s",t:"dir,rov,vol,pos,tat",k:"partita",x:2,g:2,s:"gioco",n:"Due contro uno",d:"Due giocatori contro uno. Chi è da solo copre il campo intero. Si gioca a 5 punti, poi si cambia. Dai un obiettivo al lato dei due: salire insieme.",c:"Il tema del giorno vale un punto in più.",e:"Gioco senza tema.",f:"Chi è da solo gioca più lento.",h:"Il singolo può usare tutto il campo.",o:"Il tema del giorno entra in almeno 3 punti.",q:"due contro uno padel esercizio"});
+X({i:"s2",b:"s",t:"dir,rov,pos",l:"12",k:"partita",g:1,s:"cross",n:"Solo diagonale",d:"Si gioca il punto, ma i primi 3 colpi vanno solo in diagonale. Poi gioco libero.",c:"Diagonale prima, poi decidi.",e:"Colpi lungo linea troppo presto.",f:"Solo 2 colpi in diagonale.",h:"Diagonale anche con la volée.",o:"3 punti su 5 con tutti e 3 i colpi in diagonale.",q:"padel diagonale esercizio tattica"});
+X({i:"s3",b:"s",t:"lob,vol,pos,tat",l:"23",k:"partita",g:3,s:"lob",n:"Lob e salita a rete",d:"Chi riceve gioca un lob e sale a rete. Gli avversari difendono. Si gioca il punto.",c:"Lob alto, sali insieme.",e:"Lob corto. Uno solo sale.",f:"Parti con il lob lanciato da te.",h:"Anche l'avversario può rispondere in lob.",o:"4 salite insieme su 8 punti.",q:"lob e salita a rete padel"});
+X({i:"s4",b:"s",t:"tat,par,lob",l:"23",k:"partita",g:3,s:"parete",n:"Difendi, poi attacca",d:"Una coppia è obbligata a difendere per 3 colpi, poi può attaccare. Cambio di ruoli dopo 5 punti.",c:"Pazienza prima. Attacca dopo il terzo colpo.",e:"Attacco troppo presto.",f:"Difesa per 2 colpi.",h:"Difesa per 4 colpi.",o:"3 punti su 5 vinti dopo la difesa.",q:"difesa e attacco padel esercizio"});
+X({i:"s5",b:"s",t:"vol,smash,ban",l:"23",k:"partita",g:3,s:"rete",n:"Chiudi con la volée",d:"Una coppia sta a rete, l'altra da fondo. Chi sta a rete può chiudere il punto con volée o smash. Chi sta indietro prova a lobbare.",c:"Prima aspetta la palla giusta, poi chiudi.",e:"Chiudere sul colpo sbagliato.",f:"La coppia a rete gioca con palla lenta.",h:"La coppia indietro gioca a tutto campo.",o:"3 punti su 5 chiusi dalla coppia a rete.",q:"chiudere il punto volée padel"});
+X({i:"s6",b:"s",t:"par",l:"23",k:"partita",g:3,s:"parete",n:"Ripartenza dopo il vetro",d:"Si inizia il punto con una palla che tocca il parete di fondo. Chi la gioca deve farla uscire in diagonale. Poi gioco libero.",c:"Aspetta la palla. Rimetti in gioco.",e:"Colpire con fretta.",f:"Palla lenta.",h:"Palla più angolata.",o:"4 ripartenze su 6 in campo.",q:"parete di fondo padel uscita esercizio"});
+X({i:"s7",b:"s",t:"bat,dir,rov,imp",l:"1",k:"partita",g:1,s:"gioco",n:"Tre colpi",d:"Battuta, risposta e un colpo libero. Poi il punto riparte. Si gioca a 5 punti.",c:"Battuta in campo, risposta in campo.",e:"Punti troppo lunghi.",f:"Solo battuta e risposta.",h:"Cinque colpi prima del gioco libero.",o:"3 punti su 5 con almeno 3 colpi.",q:"battuta e risposta padel principianti"});
+X({i:"s8",b:"s",k:"cesto",m:"cesto,palline",l:"12",g:2,s:"cesto",n:"Tu lanci, loro giocano il punto",d:"Lanci una palla e gli allievi giocano il punto contro di te. Scegli il lato e l'altezza per far uscire il tema del giorno.",c:"Gioca il punto fino in fondo.",e:"L'allievo si ferma dopo il primo colpo.",f:"Lancia più lento.",h:"Rispondi con colpi più veloci.",o:"3 punti su 6 vinti.",q:"gioco punto con il cesto padel"});
+X({i:"s9",b:"s",t:"pos,tat,vol",l:"12",k:"partita",g:2,s:"gioco",n:"Chi parla vince",d:"La coppia deve chiamare ogni palla: mia, tua, dentro, fuori. Un punto in più per ogni palla chiamata bene.",c:"Parla prima del colpo. Voce chiara.",e:"Nessuna chiamata.",f:"Solo la parola 'mia'.",h:"Aggiungi 'sali' e 'scendi'.",o:"5 chiamate corrette in un punto.",q:"comunicazione coppia padel"});
+X({i:"s10",b:"s",l:"23",k:"partita",x:3,g:3,s:"gioco",n:"Re del campo",d:"Una coppia sta in campo, le altre sfidano. Chi vince il punto resta, chi perde esce. Chi resta in campo conta le vittorie.",c:"Entra e gioca subito.",e:"Pause lunghe.",f:"Punti da 3.",h:"Punti da 7.",o:"Una coppia vince 3 volte di seguito.",q:"re del campo padel gioco"});
+X({i:"s11",b:"s",t:"ban,smash,vol",l:"23",p:"a",k:"partita",g:3,s:"gioco",n:"Punti bonus",d:"Il punto vale doppio se finisce con un colpo del tema. Si gioca a 7.",c:"Cerca il colpo del tema.",e:"Forzare il colpo.",f:"Bonus solo per smash.",h:"Bonus solo se il colpo è profondo.",o:"2 bonus in una partita.",q:"punti bonus padel gioco"});
+X({i:"s12",b:"s",t:"imp,dir,rov",l:"1",p:"b",k:"coppie",g:1,s:"par",n:"Palla in due",d:"Due bambini devono fare 5 scambi senza far cadere la palla. Se ci riescono, provano a farne 8. Poi gioco libero.",c:"Palla bassa, ma sopra la rete.",e:"Colpi forti.",f:"Un rimbalzo in più.",h:"Sfida con un altro gruppo.",o:"8 scambi di fila.",q:"giochi bambini padel scambi"});
+X({i:"s13",b:"s",l:"1",k:"partita",g:1,s:"cross",n:"Partita su metà campo",d:"Si gioca solo nella metà destra del campo, in diagonale. Palla lenta, 5 punti.",c:"Diagonale, palla lenta.",e:"Colpi fuori diagonale.",f:"Palla lanciata da te.",h:"Gioco su tutto il campo.",o:"3 punti su 5 con palla in campo.",q:"mini padel principianti metà campo"});
+
+/* Partite */
+X({i:"g1",b:"g",k:"partita",g:2,s:"gioco",n:"Partita a 5 punti",d:"Gioco normale. Il primo a 5 vince. Poi cambiate le coppie.",c:"Gioca il punto. Parla con il compagno.",e:"Pause lunghe.",f:"Servizio lanciato da te.",h:"Primo a 7.",o:"Una partita completa senza interrompere.",q:"partita padel regole base"});
+X({i:"g2",b:"g",k:"partita",g:2,s:"gioco",n:"Partita con colpo del giorno",d:"Il punto vale doppio se finisce con il colpo studiato oggi. Si gioca a 7.",c:"Colpo del giorno prima di tutto.",e:"Il colpo viene forzato.",f:"Un punto in più, non doppio.",h:"Solo il colpo con direzione precisa.",o:"2 punti doppi nella partita.",q:"partita padel gioco tematico"});
+X({i:"g3",b:"g",l:"23",k:"partita",x:4,g:3,s:"gioco",n:"Americana",d:"Si cambia compagno ogni 4 punti. Alla fine vince chi ha fatto più punti in totale.",c:"Parla con ogni compagno nuovo.",e:"Si gioca per sé.",f:"Cambio ogni 6 punti.",h:"Cambio ogni 3 punti.",o:"Ognuno gioca con tutti.",q:"americana padel formato"});
+X({i:"g4",b:"g",p:"b",l:"1",k:"partita",g:1,s:"cross",n:"Mini padel a metà campo",d:"Si gioca a metà campo con palla morbida. Il primo che arriva a 5 punti vince. Poi cambia la squadra.",c:"Palla morbida, tocco dolce.",e:"Colpi forti.",f:"Palla lanciata dal maestro.",h:"Tutto il campo.",o:"Una partita completa.",q:"mini padel bambini regole"});
+X({i:"g5",b:"g",l:"1",k:"partita",g:1,s:"cross",n:"Sfida a 20 scambi",d:"Tutti insieme contro il record: 20 scambi senza errori. Se la palla cade si ricomincia.",c:"Squadra, non sfida. Palla comoda.",e:"Colpi forti.",f:"10 scambi.",h:"30 scambi.",o:"20 scambi di fila.",q:"gioco cooperativo padel scambi"});
+
+
+/* Esercizi con il maestro (per 1 o 2 allievi) */
+X({i:"di5",b:"t",t:"dir,rov",l:"12",k:"maestro",y:2,g:1,s:"maestro",n:"Palleggio guidato dal fondo",d:"Giochi con l'allievo in diagonale, da fondo campo, a palla lenta e alta. Passi 2 minuti sul diritto e 2 sul rovescio. Poi alterni.",c:"Torna al centro dopo ogni colpo. Palla alta sopra la rete.",e:"Colpi troppo forti. Non si torna al centro.",f:"Un rimbalzo in più e palla più lenta.",h:"Chiedi una palla profonda ogni 3 colpi.",o:"15 scambi di fila.",q:"palleggio dal fondo padel principianti"});
+X({i:"vo5",b:"t",t:"vol",l:"12",k:"maestro",y:2,g:1,s:"rete",n:"Volée contro il maestro",d:"Tu e l'allievo siete a rete, uno per lato. Scambiate volée corte e lente. Ogni 10 scambi fate un passo indietro.",c:"Racchetta davanti. Colpo corto. Passi piccoli.",e:"Colpi forti. Racchetta che cade.",f:"Una volée e un rimbalzo, alternati.",h:"Solo rovescio per un minuto.",o:"15 scambi di fila.",q:"volée contro volée padel principianti"});
+X({i:"lo4",b:"t",t:"lob",l:"12",k:"maestro",y:2,g:2,s:"lob",n:"Lob con il maestro",d:"Tu stai a rete, l'allievo a fondo. Giochi una palla lenta, lui risponde con un lob alto. Poi invertite i ruoli.",c:"Altezza prima di tutto. Cadere dietro la linea di servizio.",e:"Lob corto. Si colpisce di polso.",f:"Palla più lenta.",h:"Aggiungi un bersaglio in fondo.",o:"5 lob su 10 profondi.",q:"lob padel tecnica principianti"});
+X({i:"po4",b:"t",t:"pos",l:"12",k:"maestro",y:2,g:2,s:"par",n:"Salita a rete con il maestro",d:"L'allievo parte da fondo. Giochi un lob corto, lui risponde e sale a rete in due passi. Poi giocate 3 colpi a rete.",c:"Risposta, due passi, racchetta pronta.",e:"Sale troppo tardi. Si ferma a metà campo.",f:"Parte già da metà campo.",h:"Sale dopo ogni colpo, senza pausa.",o:"4 salite su 8 completate.",q:"salita a rete padel esercizio"});
+X({i:"pa4",b:"t",t:"par",l:"12",k:"maestro",y:2,g:2,s:"parete",n:"Vetro con il maestro",d:"Giochi la palla verso il parete di fondo dell'allievo, lenta. Lui aspetta il rimbalzo e risponde. Contate 8 scambi.",c:"Aspetta. Gira. Colpisci davanti.",e:"Colpire troppo presto.",f:"Palla più lenta.",h:"Palla più angolata.",o:"8 scambi di fila.",q:"parete di fondo padel principianti"});
+X({i:"ba8",b:"t",t:"bat",l:"12",k:"maestro",y:2,g:2,s:"cross",n:"Battuta e risposta con il maestro",d:"L'allievo batte in diagonale e tu rispondi piano. Poi invertite.",c:"Rimbalzo, poi colpo sotto la vita. Palla in campo.",e:"Colpire sopra la vita.",f:"Battuta da vicino alla rete.",h:"Battuta su un lato preciso.",o:"6 battute su 10 nel quadrato giusto.",q:"battuta padel principianti"});
+X({i:"s14",b:"s",t:"*",l:"123",k:"maestro",y:2,g:2,s:"gioco",n:"Il punto con il maestro",d:"Giochi il punto con l'allievo. Il primo colpo è del tema del giorno, poi gioco libero. Fermati dopo 5 punti e dai una correzione.",c:"Gioca il punto fino in fondo.",e:"L'allievo si ferma dopo il primo colpo.",f:"Giochi palle più lente.",h:"Giochi a ritmo più alto.",o:"3 punti su 5 con il tema in campo.",q:"punto con l'allenatore padel"});
+
+/* Esercizi dinamici: parte motoria, tecnica e situazione di gioco insieme */
+X({i:"m1",b:"m",t:"dir,rov,pos",k:"cesto",m:"cesto,palline,coni",g:2,s:"cesto",n:"Scatta, colpisci, rientra",d:"Serie da 6 palle. Ogni palla ha tre fasi di fila.",mo:"L'allievo parte da un cono laterale e scatta verso il centro in 3 passi. Si ferma in equilibrio.",te:"Gioca il colpo del tema dal tuo lancio, diritto o rovescio.",si:"Torna al centro e gioca il punto. Tu rispondi con una palla facile.",c:"Parti al mio via. Colpisci in equilibrio. Torna al centro.",e:"Colpo in corsa senza fermarsi. Rientro lento.",f:"Cono più vicino.",h:"Lancia con un secondo di ritardo.",o:"4 serie su 6 con colpo in campo e rientro entro 3 secondi.",q:"esercizio dinamico padel spostamento colpo rientro"});
+X({i:"m2",b:"m",t:"vol,pos,tat",k:"cesto",m:"scaletta,cesto,palline",g:2,s:"cesto",n:"Scaletta, volée, punto",d:"L'allievo passa la scaletta e arriva a rete.",mo:"Scaletta con due piedi per quadrato, poi 2 passi veloci verso la rete.",te:"Volée dal tuo lancio, corta e davanti al corpo.",si:"Tu rispondi, l'allievo gioca un secondo colpo e poi il punto.",c:"Piedi veloci. Fermati prima del colpo.",e:"Si arriva a rete senza fermarsi.",f:"Solo 3 quadrati di scaletta.",h:"Tre volée di fila prima del punto.",o:"5 serie su 8 con volée in campo.",q:"scaletta volée padel esercizio dinamico"});
+X({i:"m3",b:"m",t:"lob,vol,pos,tat",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Lob, salita a rete, volée",d:"Sequenza da fondo a rete.",mo:"Dal fondo, 3 passi in avanti dopo il lob.",te:"Lob su palla bassa lanciata da te.",si:"Sale a rete e gioca la volée sulla tua risposta. Poi punto.",c:"Lob alto, sali subito.",e:"Lob corto. Sale in ritardo.",f:"Lob da metà campo.",h:"Rispondi con una palla più veloce.",o:"4 serie su 8 con lob profondo e salita.",q:"lob e salita a rete padel esercizio"});
+X({i:"m4",b:"m",t:"smash,ban",l:"23",p:"a",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Indietro, smash, rientro",d:"Arretramento, colpo alto e ritorno.",mo:"Passi incrociati indietro fino alla linea di servizio.",te:"Smash o bandeja sul tuo lob.",si:"Rientra a rete e gioca il punto sulla tua risposta.",c:"Gira il corpo. Colpisci davanti. Rientra subito.",e:"Resta indietro dopo il colpo.",f:"Lob più basso e più lento.",h:"Lob più lungo e verso un lato.",o:"5 rientri corretti su 8.",q:"smash bandeja rientro padel esercizio"});
+X({i:"m5",b:"m",t:"par,tat",l:"23",k:"cesto",m:"cesto,palline",g:3,s:"cesto",n:"Vetro, ripartenza, punto",d:"Uscita dal vetro e ripartenza.",mo:"Scatto verso il fondo e un passo di lato per fare spazio.",te:"Colpo dopo il vetro, in diagonale.",si:"Gioca il punto: tu rispondi e l'allievo riparte.",c:"Aspetta il vetro. Colpo basso e lungo.",e:"Colpire con fretta.",f:"Palla lenta.",h:"Palla più angolata.",o:"4 ripartenze su 8 in campo.",q:"uscita dal vetro padel esercizio dinamico"});
+X({i:"m6",b:"m",t:"bat,pos",l:"12",k:"maestro",y:2,g:2,s:"maestro",n:"Battuta, risposta, salita",d:"Dopo la risposta si sale a rete.",mo:"Dopo la risposta, 4 passi in avanti fino alla rete.",te:"Battuta dal basso e risposta lenta di tuo.",si:"Gioca 3 colpi a rete, poi il punto.",c:"Rispondi, sali, racchetta pronta.",e:"Si guarda la palla e si resta fermi.",f:"Solo battuta e risposta.",h:"Cinque colpi a rete.",o:"4 salite su 8 completate.",q:"battuta risposta salita a rete padel"});
+X({i:"m7",b:"m",t:"dir,rov",l:"12",k:"cesto",m:"cerchi,cesto,palline",g:2,s:"cesto",n:"Cerchi laterali",d:"Due cerchi ai lati del campo.",mo:"Tocca con il piede un cerchio laterale e torna al centro.",te:"Diritto sul cerchio di destra, rovescio su quello di sinistra.",si:"Dopo 4 palle, il quinto colpo è un punto libero.",c:"Tocca il cerchio. Torna in equilibrio. Colpisci.",e:"Si colpisce prima di fermarsi.",f:"Cerchi più vicini al centro.",h:"Cerchi più lontani.",o:"6 colpi su 10 con piede nel cerchio.",q:"esercizio padel spostamento laterale cerchi"});
+X({i:"m8",b:"m",t:"pos,tat,vol",l:"23",k:"coppie",m:"coni",g:3,s:"par",n:"Coni in coppia",d:"La coppia lavora insieme in tre fasi.",mo:"Slalom tra 3 coni, uno accanto all'altro.",te:"Volée alternate, una a testa, dalla rete.",si:"Giocano 2 colpi insieme e poi il punto contro di te.",c:"Muovetevi insieme. Parlate.",e:"Uno corre da solo.",f:"Un solo cono.",h:"Cinque coni e un colpo in più.",o:"6 punti su 10 con la coppia vicina.",q:"coppia padel esercizio coni posizione"});
+X({i:"m9",b:"m",t:"*",k:"stazioni",x:3,g:2,s:"stz",n:"Circuito a tre stazioni",d:"Tre gruppi girano ogni 5 minuti.",mo:"Stazione 1: scaletta e coni, passi veloci.",te:"Stazione 2: cesto con il tema del giorno.",si:"Stazione 3: gioco a metà campo con punti brevi.",c:"Cambio al fischio. Un compito per stazione.",e:"Chiacchiere e pause lunghe.",f:"Cambio ogni 6 minuti.",h:"Cambio ogni 4 minuti.",o:"Ogni gruppo passa da tutte le stazioni.",q:"circuito allenamento padel stazioni"});
+X({i:"m10",b:"m",t:"*",l:"23",k:"cesto",m:"cesto,palline",y:2,g:3,s:"cesto",n:"Sequenza completa dal cesto",d:"Quattro palle di fila, senza pausa.",mo:"L'allievo parte da metà campo e resta in movimento.",te:"I tuoi lanci chiedono in ordine diritto, rovescio, volée, lob.",si:"Dopo il lob sale a rete e gioca il punto.",c:"Non fermarti. Torna al centro dopo ogni colpo.",e:"Colpi con piedi fermi.",f:"Due palle per sequenza.",h:"Cambia l'ordine dei colpi.",o:"3 sequenze su 5 senza errori.",q:"sequenza colpi padel allenamento cesto"});
+X({i:"m12",b:"m",t:"*",p:"a",l:"1",k:"cesto",m:"cesto,palline",g:1,s:"cesto",n:"Passo laterale e colpo",d:"Serie da 6 palle, a ritmo calmo.",mo:"L'allievo fa due passi laterali e si ferma con le gambe flesse.",te:"Colpisce dal tuo lancio lento, diritto o rovescio.",si:"Torna al centro e gioca un secondo colpo libero, poi si riparte.",c:"Passi piccoli. Fermati e colpisci. Torna al centro.",e:"Colpire mentre si cammina.",f:"Un solo passo laterale.",h:"Tre passi e lancio più veloce.",o:"4 serie su 6 con colpo in campo.",q:"principianti padel spostamento e colpo"});
+X({i:"m11",b:"m",t:"*",p:"b",l:"1",k:"cesto",m:"cesto,palline,coni",g:1,s:"cesto",n:"Caccia ai coni",d:"Gioco di corsa e colpo.",mo:"Corre al cono del colore che dici.",te:"Colpisce la pallina lanciata da te, in piedi sul cono.",si:"Manda la pallina oltre la rete e torna al centro.",c:"Ascolta il colore. Corri. Colpisci piano.",e:"Colpo prima di fermarsi.",f:"Un cono solo.",h:"Due colori da toccare in ordine.",o:"5 palline su 8 oltre la rete.",q:"gioco bambini padel coni racchetta"});
+
+
+LIB.forEach(function(e){if(e.k==="coppie"&&e.x<2)e.x=2;});
+var MINN={s4:2,s5:2,s9:2,s11:2,s12:2,g3:4,s10:3};
+LIB.forEach(function(e){if(MINN[e.i]&&e.x<MINN[e.i])e.x=MINN[e.i];});
+/* ---------- Schemi campo ---------- */
+var WAIT=[[6,148],[6,172],[94,148],[94,172]];
+function waiters(from,n,P){for(var i=from;i<n&&i-from<4;i++){var w=WAIT[i-from];P.push([w[0],w[1],"A"+(i+1),"w"]);}}
+function tpl(e){
+ var s=e.s,k=e.k;
+ if(s==="gioco")return "gioco";
+ if(s==="rete")return k==="cesto"?"cestoRete":"rete2";
+ if(k==="maestro")return "maestro";
+ if(s==="lob")return k==="cesto"?"cestoLob":"cross";
+ if(s==="parete")return k==="cesto"?"cestoParete":(k==="partita"?"gioco":"par");
+ if(s==="cross")return k==="partita"?"gioco":"cross";
+ if(s==="par")return k==="partita"?"gioco":"par";
+ if(s==="stz")return "stz";
+ if(s==="cesto"||k==="cesto")return "cesto";
+ if(k==="partita")return "gioco";
+ return "fila";
+}
+function layout(t,n){
+ var P=[],A=[],Z=[],W=false,C=null,tx={m:"",c:"",a:""};
+ var ex=n>1?" Gli altri aspettano fuori dal campo, vicino al vetro, pronti al cambio.":"";
+ if(t==="cesto"){
+  P.push([50,92,"M","m"],[30,160,"A1","a"]);C=[63,98];A=[[50,100,34,152],[32,150,72,50]];Z=[[55,10,40,50,""]];waiters(1,n,P);
+  tx.m="Tu: nel campo opposto, a 2 metri dalla rete, davanti all'allievo.";tx.c="Cesto: a terra, vicino ai tuoi piedi.";tx.a="Allievo 1: un metro davanti al parete di fondo, al centro."+ex;
+ }else if(t==="cestoRete"){
+  P.push([62,60,"M","m"],[32,122,"A1","a"]);C=[75,64];A=[[60,68,36,114],[34,114,60,26]];Z=[[10,8,45,45,""]];waiters(1,n,P);
+  tx.m="Tu: nel campo opposto, sulla linea di servizio.";tx.c="Cesto: a terra vicino a te, sulla destra.";tx.a="Allievo 1: a un metro e mezzo dalla rete, al centro."+ex;
+ }else if(t==="cestoLob"){
+  P.push([50,96,"M","m"],[30,128,"A1","a"]);C=[63,100];A=[[48,90,32,150],[30,150,72,40]];Z=[[55,8,40,50,""]];waiters(1,n,P);
+  tx.m="Tu: nel campo opposto, vicino alla rete. Lanci alto, oltre la testa dell'allievo.";tx.c="Cesto: a terra vicino a te.";tx.a="Allievo 1: a metà campo. Arretra di due passi sul tuo lancio."+ex;
+ }else if(t==="cestoParete"){
+  P.push([50,96,"M","m"],[50,158,"A1","a"]);C=[63,100];A=[[50,104,50,146]];W=true;waiters(1,n,P);
+  tx.m="Tu: nel campo opposto, vicino alla rete. Lanci forte verso il parete di fondo dell'allievo.";tx.c="Cesto: a terra vicino a te.";tx.a="Allievo 1: al centro, a 3 metri dal parete di fondo."+ex;
+ }else if(t==="cross"){
+  P.push([25,170,"A1","a"],[75,30,n>1?"A2":"M",n>1?"a":"m"]);A=[[30,160,72,40],[70,40,26,160]];waiters(2,n,P);
+  tx.m=n>1?"Tu: fuori dal campo, di lato, dove vedi tutti e due.":"Tu: in diagonale all'allievo, vicino al tuo fondo.";tx.a="Allievi in diagonale, ognuno vicino al proprio fondo."+(n>2?" Gli altri aspettano e danno il cambio.":"");
+ }else if(t==="par"){
+  P.push([25,170,"A1","a"],[25,30,n>1?"A2":"M",n>1?"a":"m"]);A=[[22,160,22,40],[29,40,29,160]];waiters(2,n,P);
+  tx.m=n>1?"Tu: fuori dal campo, di lato.":"Tu: sulla stessa fascia dell'allievo, nell'altra metà campo.";tx.a="Allievi sulla stessa fascia, uno per metà campo."+(n>2?" Gli altri aspettano e danno il cambio.":"");
+ }else if(t==="rete2"){
+  P.push([30,118,"A1","a"],[70,82,n>1?"A2":"M",n>1?"a":"m"]);A=[[34,112,66,88],[66,88,34,112]];waiters(2,n,P);
+  tx.m=n>1?"Tu: fuori dal campo, di lato.":"Tu: a rete, di fronte all'allievo.";tx.a="Allievi a rete, uno per lato, a 1 metro e mezzo dalla rete."+(n>2?" Gli altri aspettano e danno il cambio.":"");
+ }else if(t==="maestro"){
+  P.push([75,30,"M","m"],[25,170,"A1","a"]);A=[[70,40,30,160],[28,160,72,40]];waiters(1,n,P);
+  tx.m="Tu: in diagonale all'allievo, vicino al tuo fondo.";tx.a="Allievo 1: vicino al fondo, sul lato opposto al tuo."+(n>1?" L'altro aspetta fuori e conta i colpi riusciti.":"");
+ }else if(t==="stz"){
+  Z=[[5,10,40,50,"1"],[55,10,40,50,"2"],[5,140,40,50,"3"],[55,140,40,50,"4"]];P.push([50,100,"M","m"]);
+  tx.m="Tu: al centro, tra le stazioni, dove vedi tutti.";tx.a="Allievi divisi nelle stazioni, in coppia o in gruppi. Cambio a tempo.";
+ }else if(t==="gioco"){
+  var T1=[[25,135],[75,170]],T2=[[75,65],[25,30]];
+  P.push([T1[0][0],T1[0][1],"A1","a"]);
+  if(n===1){P.push([T2[0][0],T2[0][1],"M","m"]);tx.m="Tu: nel campo opposto, in diagonale all'allievo.";tx.a="Allievo 1: vicino al fondo, pronto a muoversi su tutto il campo.";}
+  else if(n===2){P.push([T1[1][0],T1[1][1],"A2","a"],[T2[0][0],T2[0][1],"M","m"]);tx.m="Tu: nel campo opposto. Giochi palle facili.";tx.a="Allievi 1 e 2: uno a rete e uno a fondo.";}
+  else if(n===3){P.push([T1[1][0],T1[1][1],"A2","a"],[T2[0][0],T2[0][1],"A3","a"],[94,100,"M","m"]);tx.m="Tu: fuori dal campo, a lato della rete.";tx.a="Allievi 1 e 2 contro l'allievo 3, che gioca da solo. Cambio a ogni punto.";}
+  else{P.push([T1[1][0],T1[1][1],"A2","a"],[T2[0][0],T2[0][1],"A3","a"],[T2[1][0],T2[1][1],"A4","a"],[94,100,"M","m"]);waiters(4,n,P);tx.m="Tu: fuori dal campo, a lato della rete.";tx.a="Due contro due. Gli altri aspettano fuori, il cambio è a fine punto."+(n>4?" Chi perde esce.":"");}
+ }else{
+  var q=Math.min(n,8),i;P.push([50,138,"M","m"]);
+  for(i=0;i<q;i++){P.push([q===1?50:12+i*(76/(q-1)),178,"A"+(i+1),"a"]);}
+  tx.m="Tu: davanti al gruppo, al centro, così tutti vedono la dimostrazione.";tx.a="Allievi in fila dietro la linea di fondo, a due metri uno dall'altro.";
+ }
+ return {P:P,A:A,Z:Z,W:W,C:C,tx:tx};
+}
+function court(L2){
+ var o='<svg class="court" viewBox="-6 -6 112 212" role="img" aria-label="Schema del campo con le posizioni"><defs><marker id="ah" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="#ffd23f"/></marker></defs>';
+ o+='<rect class="cf" x="0" y="0" width="100" height="200"/>';
+ o+='<path class="cl" d="M0 0H100V200H0Z M0 100H100 M0 30.5H100 M0 169.5H100 M50 30.5V169.5"/>';
+ if(L2.W)o+='<line x1="0" y1="200" x2="100" y2="200" stroke="#fff" stroke-width="4"/>';
+ L2.Z.forEach(function(z){o+='<rect class="zn" x="'+z[0]+'" y="'+z[1]+'" width="'+z[2]+'" height="'+z[3]+'" rx="3"/>';if(z[4])o+='<text class="zt" x="'+(z[0]+z[2]/2)+'" y="'+(z[1]+z[3]/2+5)+'">'+z[4]+'</text>';});
+ L2.A.forEach(function(a){o+='<line class="ar" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+a[2]+'" y2="'+a[3]+'" marker-end="url(#ah)"/>';});
+ if(L2.C)o+='<rect x="'+(L2.C[0]-6)+'" y="'+(L2.C[1]-5)+'" width="12" height="10" rx="2" fill="#c8892b" stroke="#fff" stroke-width="1"/><text class="pt" x="'+L2.C[0]+'" y="'+(L2.C[1]+2.6)+'" style="fill:#fff">C</text>';
+ L2.P.forEach(function(p){o+='<circle class="'+(p[3]==="m"?"pm":p[3]==="w"?"pw":"pa")+'" cx="'+p[0]+'" cy="'+p[1]+'" r="8.5"/><text class="pt" x="'+p[0]+'" y="'+(p[1]+3)+'">'+p[2]+'</text>';});
+ return o+'</svg>';
+}
+function dove(e,n){
+ var t=tpl(e);if(!t)return "";
+ var l=layout(t,n),tx=l.tx,li="";
+ if(tx.m)li+="<li>"+esc(tx.m)+"</li>";
+ if(tx.c)li+="<li>"+esc(tx.c)+"</li>";
+ if(tx.a)li+="<li>"+esc(tx.a)+"</li>";
+ return '<div class="dove">'+court(l)+'<div><b>Dove ti metti</b><ul>'+li+'</ul><p class="mut">M sei tu, C è il cesto, A sono gli allievi. Le frecce mostrano la palla. Lo schema è indicativo.</p></div></div>';
+}
+
+/* ---------- Stato e salvataggio ---------- */
+var S={setup:{n:1,c:1,pub:"a",eta:"8-10",lv:1,dur:60,tema:"auto",aree:[],mat:{cesto:1,palline:1,coni:1,cerchi:1,scaletta:1,bande:0,step:0}},log:[],video:{},al:[]};
+var tab="prep", newAl=false, R={sel:null}, L=null, ref=null, saveT=null, dbOk=false;
+var LS="padel_coach_v1";
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
+function loadLocal(){try{var j=localStorage.getItem(LS);if(j){merge(JSON.parse(j));}}catch(e){}}
+function merge(d){if(!d)return;if(d.setup&&d.setup.mat&&d.setup.mat.cestino!==undefined){d.setup.mat.cesto=d.setup.mat.cestino;delete d.setup.mat.cestino;}if(d.setup){Object.assign(S.setup,d.setup);S.setup.mat=Object.assign({},S.setup.mat,d.setup.mat||{});}if(d.log)S.log=d.log;if(d.al)S.al=d.al;if(S.setup.tema&&S.setup.tema!=="auto"&&!(S.setup.aree&&S.setup.aree.length))S.setup.aree=[S.setup.tema];S.setup.aree=S.setup.aree||[];if(d.video)S.video=d.video;}
+function save(){
+ try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
+ clearTimeout(saveT);
+ saveT=setTimeout(function(){},500);
+}
+function initStore(){
+ loadLocal(); render();
+}
+
+/* ---------- Generatore ---------- */
+var DUR={60:{r:[10],t:[15],m:[15],s:[10],g:[8],d:[2]},75:{r:[12],t:[18],m:[18],s:[14],g:[10],d:[3]},90:{r:[15],t:[10,10],m:[20],s:[20],g:[10],d:[5]}};
+var BN={r:"Riscaldamento",t:"Tecnica",m:"Esercizio dinamico",s:"Situazioni di gioco",g:"Partita a regole",d:"Defaticamento e parere"};
+var BORD=["r","t","m","s","g","d"];
+function ordKey(st){return st.pub==="b"?"b":"a"+st.lv;}
+function lastTemi(st){var k=ordKey(st);return S.log.filter(function(l){return ordKey(l)===k;}).slice(0,2).map(function(l){return l.tema;});}
+function alLog(id){return S.log.filter(function(l){return (l.al||"")===(id||"");});}
+function cnt(id){var c={};alLog(id).forEach(function(l){(l.aree&&l.aree.length?l.aree:[l.tema]).forEach(function(t){c[t]=(c[t]||0)+1;});});return c;}
+function ordAl(st){
+ var ord=ORD[ordKey(st)],c=cnt(st.al);
+ return ord.map(function(t,i){return {t:t,i:i};}).sort(function(a,b){return ((c[a.t]||0)-(c[b.t]||0))||(a.i-b.i);}).map(function(x){return x.t;});
+}
+function proponi(st){
+ if(st.al){var o=ordAl(st),last=alLog(st.al)[0];for(var j=0;j<o.length;j++){if(!last||o[j]!==last.tema)return o[j];}return o[0];}
+ var ord=ORD[ordKey(st)], rec=lastTemi(st);
+ for(var i=0;i<ord.length;i++){if(rec.indexOf(ord[i])<0)return ord[i];}
+ return ord[0];
+}
+function prossimi(st){
+ if(st.al)return ordAl(st).slice(0,4);
+ var ord=ORD[ordKey(st)], p=proponi(st), i=ord.indexOf(p), r=[];
+ for(var k=0;k<4;k++)r.push(ord[(i+k)%ord.length]);
+ return r;
+}
+function alById(id){for(var i=0;i<S.al.length;i++)if(S.al[i].id===id)return S.al[i];return null;}
+function alName(id){var a=alById(id);return a?a.nome:"Lezioni libere";}
+function ent(ts){for(var i=0;i<S.log.length;i++)if(String(S.log[i].ts)===String(ts))return S.log[i];return null;}
+function dataIt(ts){return new Date(ts).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"});}
+function flat(l){var r=[];(l.ids||[]).forEach(function(x){if(Array.isArray(x))x.forEach(function(y){r.push({i:y});});else r.push(x);});return r;}
+function matOk(e,st){return !e.m||e.m.split(",").every(function(m){return st.mat[m];});}
+function cand(blk,tema,slot,st){
+ var pool=LIB.filter(function(e){return e.b===blk;});
+ function f(opt){return pool.filter(function(e){
+  if(opt.pub&&e.p.indexOf(st.pub==="b"?"b":"a")<0)return false;
+  if(opt.lv&&e.l.indexOf(String(st.lv))<0)return false;
+  if(opt.n&&(st.n<e.x||st.n>e.y))return false;
+  return true;});}
+ var r=f({pub:1,lv:1,n:1}); if(r.length<3)r=f({pub:1,n:1}); if(!r.length)r=f({pub:1});
+ var set=[tema].concat(ALIAS[tema]||[]);
+ function pen(e){
+  if(blk==="t")return e.t.split(",").some(function(x){return set.indexOf(x)>=0;})?0:5;
+  if(blk==="s"||blk==="m"){var ts=e.t.split(",");if(ts.indexOf(tema)>=0)return 0;if(e.t==="*")return 0.6;return 5;}
+  return 0;
+ }
+ var target=blk==="t"?(slot===0?Math.max(1,st.lv-0.5):st.lv+0.5):st.lv;
+ r=r.map(function(e){return {e:e,k:pen(e)+(matOk(e,st)?0:3)+Math.abs(e.g-target)*0.6+Math.random()*0.8};}).sort(function(a,b){return a.k-b.k;});
+ return r.map(function(x){return x.e.i;});
+}
+function byId(id){for(var i=0;i<LIB.length;i++)if(LIB[i].i===id)return LIB[i];return null;}
+function splitMin(sum,n){var r=[],b=Math.floor(sum/n),rm=sum-b*n;for(var i=0;i<n;i++)r.push(b+(i<rm?1:0));return r;}
+function idsDiL(){var ids=idsDiL();return ids;}
+function genera(over,keep){
+ var st=JSON.parse(JSON.stringify(S.setup));
+ var aree=over||(st.aree&&st.aree.length?st.aree.slice(0,4):[proponi(st)]);
+ var auto=!over&&!(st.aree&&st.aree.length);
+ var k=aree.length;
+ var base=DUR[st.dur], kids=st.pub==="b", plan={};
+ BORD.forEach(function(b){plan[b]=base[b].slice();});
+ if(kids){plan.t=plan.t.map(function(x){return Math.max(6,x-3);});plan.g=[plan.g[0]+plan.t.length*3];}
+ if(k>1){
+  var sum=function(a){return a.reduce(function(x,y){return x+y;},0);};
+  plan.t=splitMin(sum(plan.t),k);plan.m=splitMin(sum(plan.m),Math.min(k,2));plan.s=splitMin(sum(plan.s),Math.min(k,2));
+ }
+ var kb={};if(keep)keep.blocks.forEach(function(b){kb[b.b]=b;});
+ var blocks=[], used={};
+ BORD.forEach(function(b){
+  if(kb[b]&&(b==="r"||b==="g"||b==="d")){kb[b].slots.forEach(function(sl){used[sl.c[sl.pos%sl.c.length]]=1;});blocks.push(kb[b]);return;}
+  var slots=plan[b].map(function(min,i){
+   var th=(b==="t"||b==="m"||b==="s")?aree[i%k]:aree[0];
+   var c=cand(b,th,i,st), pos=0;
+   while(pos<c.length-1&&used[c[pos]])pos++;
+   used[c[pos]]=1;
+   return {min:min,c:c,pos:pos};
+  });
+  blocks.push({b:b,slots:slots});
+ });
+ L={st:st,tema:aree[0],auto:auto,blocks:blocks,ts:Date.now(),saved:false,entry:null,done:{},aree:aree.slice()};
+ if(keep){L.ts=keep.ts;L.done=keep.done;L.entry=keep.entry;L.saved=keep.saved;L.auto=false;}
+}
+function rigenera(aree){
+ genera(aree,L);
+ if(L.entry){L.entry.tema=L.aree[0];L.entry.aree=L.aree.slice();L.entry.ids=idsDiL();save();}
+}
+function slotEx(s){return byId(s.c[s.pos%s.c.length]);}
+function cambia(bi,si){
+ var s=L.blocks[bi].slots[si]; if(s.c.length<2)return;
+ var usedNow={};L.blocks.forEach(function(b){b.slots.forEach(function(x){usedNow[x.c[x.pos%x.c.length]]=1;});});
+ for(var k=0;k<s.c.length;k++){s.pos=(s.pos+1)%s.c.length;if(!usedNow[s.c[s.pos]])break;}
+}
+
+/* ---------- Testi di organizzazione ---------- */
+function org(e,st){
+ var n=st.n,c=st.c,per=Math.ceil(n/c);
+ if(e.k==="cesto"){
+  if(n===1)return "Tu lanci dal cesto. L'allievo gioca serie da 8 palle e riposa 30 secondi.";
+  if(per<=2)return "Tu lanci. Un allievo gioca 6 palle, l'altro fa il movimento a vuoto dietro di lui. Poi cambiate.";
+  if(per<=4)return "Due allievi in campo a turno. Gli altri raccolgono le palle o fanno il movimento a vuoto. Cambio ogni 6 palle.";
+  return "Dividi in due gruppi. Un gruppo gioca con te, l'altro lavora in una stazione con scaletta o movimento a vuoto. Cambio ogni 4 minuti.";
+ }
+ if(e.k==="coppie"){
+  if(n===1)return "Giochi tu con l'allievo. Tieni palle lente e precise.";
+  if(n===2)return "Gli allievi giocano tra loro. Tu correggi da dietro.";
+  if(n===3)return "Due giocano. Il terzo conta i colpi riusciti. Cambio ogni 2 minuti.";
+  if(n===4)return c>=2?"Una coppia per campo. Tu passi da un campo all'altro.":"Due coppie si alternano ogni 3 minuti. Chi aspetta fa il movimento a vuoto.";
+  return "Una coppia per ogni campo. Gli altri lavorano con scaletta o movimento a vuoto. Cambio ogni 3 minuti.";
+ }
+ if(e.k==="maestro"){
+  if(n===1)return "Giochi tu con l'allievo, a ritmo basso e con palle precise.";
+  return "Giochi con un allievo alla volta. L'altro aspetta fuori e conta i colpi riusciti. Cambio ogni 3 minuti.";
+ }
+ if(e.k==="stazioni")return "Un gruppo per stazione. Cambio ogni 5 minuti. Tu stai dove serve di più la correzione.";
+ if(e.k==="partita"){
+  if(n===1)return "Giochi tu contro l'allievo. Tieni un ritmo basso.";
+  if(n===2)return "Due allievi contro di te. Giochi solo palle facili.";
+  if(n===3)return "Due contro uno. Chi è da solo cambia a ogni punto.";
+  if(n===4)return "Due contro due. Tu osservi e fermi il gioco solo per una correzione breve.";
+  return c>=2?"Due partite insieme. Cambio di campo ogni 5 minuti.":"Due contro due. Chi perde il punto esce e rientra.";
+ }
+ return n===1?"Fai l'esercizio insieme all'allievo.":"Tutti insieme, a distanza. Passa tra loro e correggi uno alla volta.";
+}
+
+/* ---------- Viste ---------- */
+function chips(name,vals,cur,fmt){
+ return '<div class="chips" role="group">'+vals.map(function(v){return '<button type="button" class="chip" data-a="set" data-k="'+name+'" data-v="'+v+'" aria-pressed="'+(String(cur)===String(v))+'">'+esc(fmt?fmt(v):v)+'</button>';}).join("")+'</div>';
+}
+function vPrep(){
+ var st=S.setup, kids=st.pub==="b", p=proponi(st), pr=prossimi(st);
+
+ var o='<div class="card">';
+ o+='<label class="lab" for="al">Allievo o gruppo</label><select id="al" data-a="al"><option value="">Nessuno (lezione libera)</option>'+S.al.map(function(a){return '<option value="'+a.id+'"'+(st.al===a.id?" selected":"")+'>'+esc(a.nome)+'</option>';}).join("")+'<option value="__new"'+(newAl?" selected":"")+'>+ Nuovo allievo o gruppo</option></select>';
+ if(newAl)o+='<div class="row" style="margin-top:8px"><input type="text" id="alnome" placeholder="Nome, per esempio Emma o Gruppo del martedì" style="flex:1 1 200px"><button type="button" class="btn sm" data-a="alAdd">Aggiungi</button></div>';
+ if(st.al){var cc=cnt(st.al),tt=Object.keys(cc);o+='<p class="mut" style="margin-top:8px">'+(tt.length?"Aree già lavorate: "+tt.map(function(t){return TEMI[t]?TEMI[t].n+" ("+cc[t]+")":t;}).join(", ")+".":"Nessuna lezione salvata per questo allievo.")+'</p>';}
+
+ o+='<span class="lab">Allievi</span>'+chips("n",[1,2,3,4,5,6,7,8],st.n);
+ o+='<span class="lab">Campi</span>'+chips("c",[1,2],st.c);
+ o+='<span class="lab">Chi alleni</span>'+chips("pub",["a","b"],st.pub,function(v){return v==="a"?"Adulti":"Bambini";});
+ if(kids)o+='<span class="lab">Età</span>'+chips("eta",["5-7","8-10","11-14"],st.eta,function(v){return v+" anni";});
+ o+='<span class="lab">Livello</span>'+chips("lv",[1,2,3],st.lv,function(v){return ["","Principiante","Intermedio","Avanzato"][v];});
+ o+='<span class="lab">Durata</span>'+chips("dur",[60,75,90],st.dur,function(v){return v+" min";});
+ o+='<span class="lab">Aree di lavoro</span><div class="chips"><button type="button" class="chip" data-a="areaAuto" aria-pressed="'+(!st.aree.length)+'">Proponi tu</button>'+Object.keys(TEMI).map(function(k){return '<button type="button" class="chip" data-a="areaP" data-v="'+k+'" aria-pressed="'+(st.aree.indexOf(k)>=0)+'">'+TEMI[k].n+'</button>';}).join("")+'</div><p class="mut" style="margin-top:6px">Scegli fino a 4 aree. La lezione divide il tempo tra le aree scelte.</p>';
+ if(st.aree.length){o+='<div class="prop"><b>Aree scelte: '+esc(st.aree.map(function(k){return TEMI[k].n;}).join(", "))+'.</b></div>';}else o+='<div class="prop"><b>Tema proposto: '+TEMI[p].n+'.</b> '+(st.al?(alLog(st.al).length?"Parte dalle aree meno lavorate con "+esc(alName(st.al))+".":"Prima lezione con "+esc(alName(st.al))+", parti dalla base."):lastTemi(st).length?"Hai fatto di recente "+lastTemi(st).map(function(t){return TEMI[t]?TEMI[t].n:t;}).join(" e ")+".":"Non hai ancora lezioni salvate per questo gruppo, parti dalla base.")+'<br><span class="mut">Prossime 4 lezioni: '+pr.map(function(t){return TEMI[t].n;}).join(", ")+'.</span></div>';
+ o+='<span class="lab">Materiali che hai oggi</span><div class="chips">'+Object.keys(MATN).map(function(k){return '<button type="button" class="chip" data-a="mat" data-k="'+k+'" aria-pressed="'+(!!st.mat[k])+'">'+MATN[k]+'</button>';}).join("")+'</div>';
+ o+='<div class="row" style="margin-top:18px"><button type="button" class="btn" data-a="gen">Prepara la lezione</button></div></div>';
+ o+='<p class="mut" style="margin-top:12px">Gli esercizi sono scritti in parole mie e non copiano la guida del corso. Rivedili con il tuo occhio da maestro prima di usarli.</p>';
+ return o;
+}
+function vEx(bi,si){
+ var s=L.blocks[bi].slots[si], e=slotEx(s), st=L.st;
+ var key=e.i, mv=S.video[key]||"";
+ var o='<div class="ex"><h3><span>'+esc(e.n)+'</span><span class="min">'+s.min+' min</span></h3>';
+ o+='<label class="fatto"><input type="checkbox" id="f_'+e.i+'" data-a="fatto" data-k="'+e.i+'"'+(L.done[e.i]?" checked":"")+'> Fatto</label>';
+ if(!matOk(e,st))o+='<span class="warn">Servono: '+esc(e.m.split(",").filter(function(m){return !st.mat[m];}).map(function(m){return MATN[m];}).join(", "))+'</span>';
+ o+='<div class="org"><b>Come organizzi:</b> '+esc(org(e,st))+'</div>';
+ o+='<p class="d">'+esc(e.d)+'</p>';
+ if(e.b==="m")o+='<div class="fasi"><div><b>1 Parte motoria</b><span>'+esc(e.mo)+'</span></div><div><b>2 Parte tecnica</b><span>'+esc(e.te)+'</span></div><div><b>3 Situazione di gioco</b><span>'+esc(e.si)+'</span></div></div>';
+ o+=dove(e,st.n);
+ o+='<p class="obj"><b>Obiettivo:</b> '+esc(e.o)+'</p>';
+ o+='<details><summary>Consegne ed errori comuni</summary><ul><li><b>Dì all\'allievo:</b> '+esc(e.c)+'</li><li><b>Errori comuni:</b> '+esc(e.e)+'</li></ul></details>';
+ o+='<details><summary>Piano B: più facile o più difficile</summary><ul><li><b>Se non riesce:</b> '+esc(e.f)+'</li><li><b>Se è facile:</b> '+esc(e.h)+'</li></ul></details>';
+ o+='<div class="vid"><a href="https:\/\/www.youtube.com/results?search_query='+encodeURIComponent(e.q)+'" target="_blank" rel="noopener">Cerca un video</a>';
+ if(mv)o+='<a href="'+esc(mv)+'" target="_blank" rel="noopener">Il mio video</a>';
+ o+='<input type="url" id="v_'+key+'" data-a="video" data-k="'+key+'" placeholder="Incolla il link del tuo video" value="'+esc(mv)+'" aria-label="Link del tuo video per '+esc(e.n)+'"></div>';
+ if(s.c.length>1)o+='<div class="row" style="margin-top:10px"><button type="button" class="btn sec sm" data-a="cambia" data-b="'+bi+'" data-s="'+si+'">Cambia esercizio</button></div>';
+ return o+'</div>';
+}
+function vLez(){
+ if(!L)return '<div class="empty">Nessuna lezione pronta.<br><br><button type="button" class="btn" data-a="tab" data-v="prep">Vai a Prepara</button></div>';
+ var st=L.st, kids=st.pub==="b", t=TEMI[L.tema];
+ var o='<div class="card"><h2>'+esc(L.aree.map(function(k){return TEMI[k].n;}).join(" + "))+'</h2><p class="mut">'+st.n+(st.n===1?" allievo":" allievi")+", "+st.c+(st.c===1?" campo":" campi")+", "+(kids?"bambini "+st.eta+" anni":"adulti")+", "+["","principiante","intermedio","avanzato"][st.lv]+", "+st.dur+" minuti"+(L.auto?". Tema scelto dall'app.":".")+'</p>';
+ o+='<p class="obj" style="margin-top:10px"><b>'+(L.aree.length>1?'Obiettivi della lezione:':'Obiettivo della lezione:')+'</b> '+esc(L.aree.map(function(k){return (L.aree.length>1?TEMI[k].n+': ':'')+TEMI[k].ob;}).join(' '))+'</p>';
+ if(st.al)o+='<p class="mut" style="margin-top:6px">Allievo: <b>'+esc(alName(st.al))+'</b></p>';
+ o+='<span class="lab">Aree su cui lavori</span><div class="chips">'+Object.keys(TEMI).map(function(k){return '<button type="button" class="chip sm2" data-a="area" data-v="'+k+'" aria-pressed="'+(L.aree.indexOf(k)>=0)+'">'+TEMI[k].n+'</button>';}).join("")+'</div>';
+ if(kids)o+='<div class="org">'+esc(ETA[st.eta])+'</div>';
+ o+='<details><summary>Come conduci ogni esercizio, in 4 passi</summary><ul><li><b>Briefing (30 secondi):</b> dì cosa fate e qual è l\'obiettivo da contare.</li><li><b>Dimostrazione:</b> mostra il gesto una volta, lento.</li><li><b>Esecuzione:</b> fai giocare e dai una correzione breve alla volta.</li><li><b>Debriefing (30 secondi):</b> conta quante palle sono riuscite e dì una cosa da migliorare.</li></ul></details>';
+ var mats={};L.blocks.forEach(function(b){b.slots.forEach(function(s){var e=slotEx(s);if(e.m)e.m.split(",").forEach(function(m){mats[m]=1;});});});
+ var ml=Object.keys(mats).map(function(m){return MATN[m]+(st.mat[m]?"":" (non l'hai segnato)");});
+ o+='<details><summary>Materiali da portare</summary><ul class="mat">'+(ml.length?ml.map(function(m){return '<li>'+esc(m)+'</li>';}).join(""):'<li>Solo racchette e palline.</li>')+'</ul></details>';
+ o+='<div class="row" style="margin-top:14px"><button type="button" class="btn" data-a="campo">Modo campo</button>'+(L.saved?'<button type="button" class="btn sec" data-a="vaiScheda">Vedi nel registro</button>':'<button type="button" class="btn sec" data-a="salva">Salva nel registro</button>')+'</div></div>';
+ L.blocks.forEach(function(b,bi){
+  var tot=b.slots.reduce(function(a,s){return a+s.min;},0);
+  o+='<section class="blk"><h2>'+BN[b.b]+'<span>'+tot+' min</span></h2>';
+  b.slots.forEach(function(s,si){o+=vEx(bi,si);});
+  o+='</section>';
+ });
+ return o;
+}
+function top3(c){return Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,3);}
+function vReg(){
+ if(R.sel===null){
+  var o="",ids=S.al.map(function(a){return a.id;});
+  if(alLog("").length)ids.push("");
+  if(!ids.length)return '<div class="empty">Il registro è vuoto.<br>Scegli o aggiungi un allievo in Prepara, poi salva la lezione.</div>';
+  ids.forEach(function(id){
+   var lg=alLog(id),c=cnt(id),a=alById(id);
+   o+='<button type="button" class="card alcard" data-a="reg" data-v="'+(id||"free")+'"><div class="t"><h3>'+esc(alName(id))+'</h3><span class="mut">'+(a?(a.n===1?"1 allievo":a.n+" allievi"):"")+'</span></div><p class="mut">'+lg.length+(lg.length===1?" lezione":" lezioni")+(lg.length?", ultima "+esc(dataIt(lg[0].ts)):"")+'</p>'+(top3(c).length?'<div class="chips" style="margin-top:8px">'+top3(c).map(function(t){return '<span class="tag">'+esc(TEMI[t]?TEMI[t].n:t)+' '+c[t]+'</span>';}).join("")+'</div>':'')+'</button>';
+  });
+  return o;
+ }
+ var id=R.sel==="free"?"":R.sel,a=alById(id),lg=alLog(id),c=cnt(id);
+ var o='<button type="button" class="btn sec sm" data-a="regBack" style="margin-top:12px">Tutti gli allievi</button>';
+ o+='<div class="card"><h2>'+esc(alName(id))+'</h2>';
+ if(a)o+='<label class="lab" for="alN">Nome</label><input type="text" id="alN" data-a="alNome" data-v="'+a.id+'" value="'+esc(a.nome)+'">';
+ o+='<p class="mut" style="margin-top:8px">'+lg.length+(lg.length===1?" lezione":" lezioni")+'</p>';
+ o+='<span class="lab">Aree lavorate</span><div class="chips">'+Object.keys(TEMI).map(function(t){var n=c[t]||0;var last=lg.filter(function(l){return (l.aree&&l.aree.length?l.aree:[l.tema]).indexOf(t)>=0;})[0];return '<span class="tag'+(n?" on":"")+'">'+esc(TEMI[t].n)+' '+n+(last?' · '+esc(dataIt(last.ts)):'')+'</span>';}).join("")+'</div></div>';
+ var base=lg[0]||{pub:"a",lv:1},ord=ORD[ordKey(base)];
+ var never=ord.filter(function(t){return !c[t];}),once=ord.filter(function(t){return c[t]===1;});
+ var lastNext=lg.filter(function(l){return l.next;})[0];
+ o+='<div class="card"><h3>Sviluppi futuri</h3><ul>';
+ if(lastNext)o+='<li><b>Dall\'ultima volta:</b> '+esc(lastNext.next)+'</li>';
+ if(never.length)o+='<li><b>Da iniziare:</b> '+never.slice(0,3).map(function(t){return esc(TEMI[t].n);}).join(", ")+'.</li>';
+ if(once.length)o+='<li><b>Da consolidare:</b> '+once.slice(0,3).map(function(t){return esc(TEMI[t].n);}).join(", ")+'.</li>';
+ if(!lg.length)o+='<li>Nessuna lezione ancora. Parti dalla base.</li>';
+ o+='</ul>'+(a?'<button type="button" class="btn" data-a="prossima" data-v="'+a.id+'">Prepara la prossima lezione</button>':'')+'</div>';
+ var fatti={};lg.forEach(function(l){flat(l).forEach(function(x){if(l.done&&l.done[x.i])fatti[x.i]=(fatti[x.i]||0)+1;});});
+ var fk=Object.keys(fatti).filter(function(k){return byId(k);});
+ o+='<div class="card"><details><summary>Esercizi eseguiti ('+fk.length+')</summary><ul>'+(fk.length?fk.map(function(k){return '<li>'+esc(byId(k).n)+(fatti[k]>1?' x'+fatti[k]:'')+'</li>';}).join(""):'<li>Nessun esercizio segnato come fatto.</li>')+'</ul></details></div>';
+ lg.forEach(function(l){
+  var ar=l.aree&&l.aree.length?l.aree:[l.tema],fl=flat(l);
+  o+='<div class="card log"><div class="t"><h3>'+esc(TEMI[l.tema]?TEMI[l.tema].n:l.tema)+'</h3><span class="mut">'+esc(dataIt(l.ts))+'</span></div><p class="mut">'+l.n+(l.n===1?" allievo":" allievi")+", "+(l.pub==="b"?"bambini":"adulti")+", "+["","principiante","intermedio","avanzato"][l.lv]+", "+l.dur+' min</p>';
+  o+='<span class="lab">Aree lavorate</span><div class="chips">'+Object.keys(TEMI).map(function(k){return '<button type="button" class="chip sm2" data-a="eArea" data-t="'+l.ts+'" data-v="'+k+'" aria-pressed="'+(ar.indexOf(k)>=0)+'">'+TEMI[k].n+'</button>';}).join("")+'</div>';
+  o+='<span class="lab">Esercizi</span><div class="chk">'+fl.filter(function(x){return byId(x.i);}).map(function(x){return '<label><input type="checkbox" data-a="eFatto" data-t="'+l.ts+'" data-k="'+x.i+'"'+(l.done&&l.done[x.i]?" checked":"")+'> '+esc(byId(x.i).n)+'</label>';}).join("")+'</div>';
+  o+='<label class="lab" for="nota'+l.ts+'">Com\'è andata</label><textarea id="nota'+l.ts+'" data-a="nota" data-t="'+l.ts+'" placeholder="Cosa ha funzionato?">'+esc(l.nota||"")+'</textarea>';
+  o+='<label class="lab" for="next'+l.ts+'">Prossimo passo</label><textarea id="next'+l.ts+'" data-a="next" data-t="'+l.ts+'" placeholder="Cosa fate la prossima volta?">'+esc(l.next||"")+'</textarea>';
+  o+='<div class="row" style="margin-top:10px"><button type="button" class="btn sec sm" data-a="riapri" data-t="'+l.ts+'">Riapri</button><button type="button" class="btn sec sm" data-a="elim" data-t="'+l.ts+'">'+(l.conf?"Tocca per confermare":"Elimina")+'</button></div></div>';
+ });
+ return o;
+}
+function render(){
+ ["prep","lez","reg"].forEach(function(t){var b=document.getElementById("tb-"+t);b.setAttribute("aria-selected",String(tab===t));});
+ var html=tab==="prep"?vPrep():tab==="lez"?vLez():vReg();
+ document.getElementById("app").innerHTML=html;
+}
+
+/* ---------- Modo campo ---------- */
+var C={items:[],i:0,left:0,run:false,tm:null};
+function campoItems(){
+ var a=[];L.blocks.forEach(function(b){b.slots.forEach(function(s){a.push({blk:BN[b.b],e:slotEx(s),min:s.min});});});
+ return a;
+}
+function campoDraw(){
+ var el=document.getElementById("campo"), it=C.items[C.i], tot=it.min*60;
+ var m=Math.floor(Math.abs(C.left)/60), s=Math.abs(C.left)%60;
+ el.innerHTML='<div class="row" style="justify-content:space-between"><span class="mut">'+(C.i+1)+" di "+C.items.length+" · "+esc(it.blk)+'</span><button type="button" class="btn sec sm" data-a="chiudiCampo">Chiudi</button></div>'+
+ '<h2 style="margin-top:12px">'+esc(it.e.n)+'</h2>'+
+ '<div class="big'+(C.left<0?" fine":"")+'" id="cd">'+(C.left<0?"+":"")+m+":"+(s<10?"0":"")+s+'</div>'+
+ '<div class="bar"><i id="pb" style="width:'+Math.max(0,Math.min(100,100*(1-C.left/tot)))+'%"></i></div>'+
+ '<div class="org" style="margin-top:14px">'+esc(org(it.e,L.st))+'</div>'+dove(it.e,L.st.n)+
+ '<p class="obj"><b>Obiettivo:</b> '+esc(it.e.o)+'</p>'+
+ '<p class="mut" style="margin-top:8px"><b>Dì:</b> '+esc(it.e.c)+'</p>'+
+ '<div class="row" style="margin-top:18px"><button type="button" class="btn sec" data-a="cPrev"'+(C.i===0?" disabled":"")+'>Indietro</button><button type="button" class="btn" data-a="cRun">'+(C.run?"Pausa":"Avvia")+'</button><button type="button" class="btn sec" data-a="cNext"'+(C.i===C.items.length-1?" disabled":"")+'>Avanti</button></div>';
+}
+function campoTick(){
+ C.left--;
+ var cd=document.getElementById("cd");
+ if(C.left===0){try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}}
+ if(cd){var m=Math.floor(Math.abs(C.left)/60),s=Math.abs(C.left)%60;cd.textContent=(C.left<0?"+":"")+m+":"+(s<10?"0":"")+s;cd.className="big"+(C.left<0?" fine":"");}
+ var pb=document.getElementById("pb"),tot=C.items[C.i].min*60;
+ if(pb)pb.style.width=Math.max(0,Math.min(100,100*(1-C.left/tot)))+"%";
+}
+function campoGo(i){C.i=i;C.left=C.items[i].min*60;C.run=false;clearInterval(C.tm);campoDraw();}
+function campoOpen(){C.items=campoItems();document.getElementById("campo").hidden=false;campoGo(0);try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(function(){});}catch(e){}}
+function campoClose(){clearInterval(C.tm);C.run=false;document.getElementById("campo").hidden=true;}
+
+/* ---------- Eventi ---------- */
+document.addEventListener("click",function(ev){
+ var t=ev.target.closest("[data-a]"); if(!t)return;
+ var a=t.getAttribute("data-a"), st=S.setup;
+ if(a==="tab"){tab=t.getAttribute("data-v");render();window.scrollTo(0,0);return;}
+ if(a==="set"){var k=t.getAttribute("data-k"),v=t.getAttribute("data-v");st[k]=(k==="pub"||k==="eta")?v:Number(v);save();render();return;}
+ if(a==="mat"){var m=t.getAttribute("data-k");st.mat[m]=st.mat[m]?0:1;save();render();return;}
+ if(a==="gen"){genera();tab="lez";render();window.scrollTo(0,0);return;}
+ if(a==="cambia"){cambia(Number(t.getAttribute("data-b")),Number(t.getAttribute("data-s")));render();return;}
+ if(a==="salva"){
+  var ids=[];L.blocks.forEach(function(b){b.slots.forEach(function(sl){ids.push({i:sl.c[sl.pos%sl.c.length],min:sl.min,b:b.b});});});
+  var en={ts:Date.now(),al:L.st.al||"",tema:L.tema,aree:L.aree.slice(),n:L.st.n,c:L.st.c,pub:L.st.pub,eta:L.st.eta,lv:L.st.lv,dur:L.st.dur,nota:"",next:"",ids:ids,done:Object.assign({},L.done)};
+  S.log.unshift(en);L.entry=en;L.saved=true;
+  var A=alById(en.al);if(A){A.n=en.n;A.pub=en.pub;A.eta=en.eta;A.lv=en.lv;}
+  save();render();return;}
+ if(a==="vaiScheda"){R.sel=L.st.al||"free";tab="reg";render();window.scrollTo(0,0);return;}
+ if(a==="area"){var k2=t.getAttribute("data-v"),na=L.aree.slice(),ix=na.indexOf(k2);if(ix>=0){if(na.length>1)na.splice(ix,1);else return;}else{if(na.length>=4)return;na.push(k2);}rigenera(na);render();return;}
+ if(a==="areaAuto"){st.aree=[];save();render();return;}
+ if(a==="areaP"){var k6=t.getAttribute("data-v"),i6=st.aree.indexOf(k6);if(i6>=0)st.aree.splice(i6,1);else if(st.aree.length<4)st.aree.push(k6);save();render();return;}
+ if(a==="eArea"){var e1=ent(t.getAttribute("data-t")),k3=t.getAttribute("data-v");if(e1){var ar=(e1.aree&&e1.aree.length?e1.aree:[e1.tema]).slice(),i3=ar.indexOf(k3);if(i3>=0){if(ar.length>1)ar.splice(i3,1);}else ar.push(k3);e1.aree=ar;save();render();}return;}
+ if(a==="reg"){var v4=t.getAttribute("data-v");R.sel=v4;render();window.scrollTo(0,0);return;}
+ if(a==="regBack"){R.sel=null;render();return;}
+ if(a==="alAdd"){var inp=document.getElementById("alnome"),nm=inp&&inp.value.trim();if(!nm)return;var na={id:"a"+Date.now(),nome:nm,n:st.n,pub:st.pub,eta:st.eta,lv:st.lv};S.al.push(na);st.al=na.id;newAl=false;save();render();return;}
+ if(a==="prossima"){var A2=alById(t.getAttribute("data-v"));if(A2){Object.assign(st,{al:A2.id,n:A2.n,pub:A2.pub,eta:A2.eta||"8-10",lv:A2.lv,tema:"auto",aree:[]});save();tab="prep";render();window.scrollTo(0,0);}return;}
+ if(a==="elim"){var l=ent(t.getAttribute("data-t"));if(l){if(l.conf){S.log.splice(S.log.indexOf(l),1);if(L&&L.entry===l){L.entry=null;L.saved=false;}save();}else{l.conf=1;}}render();return;}
+ if(a==="riapri"){
+  var l2=ent(t.getAttribute("data-t"));if(!l2)return;
+  S.setup=Object.assign(S.setup,{al:l2.al||"",n:l2.n,c:l2.c,pub:l2.pub,eta:l2.eta||"8-10",lv:l2.lv,dur:l2.dur,tema:l2.tema,aree:(l2.aree&&l2.aree.length?l2.aree.slice(0,4):[l2.tema])});
+  genera();tab="lez";render();window.scrollTo(0,0);return;}
+ if(a==="campo"){campoOpen();return;}
+ if(a==="chiudiCampo"){campoClose();return;}
+ if(a==="cRun"){C.run=!C.run;clearInterval(C.tm);if(C.run)C.tm=setInterval(campoTick,1000);campoDraw();return;}
+ if(a==="cNext"){campoGo(Math.min(C.items.length-1,C.i+1));return;}
+ if(a==="cPrev"){campoGo(Math.max(0,C.i-1));return;}
+});
+document.addEventListener("change",function(ev){
+ var t=ev.target, a=t.getAttribute&&t.getAttribute("data-a"); if(!a)return;
+ 
+ if(a==="video"){var v=t.value.trim();if(v&&!/^https?:\/\//i.test(v))v="https:\/\/"+v;if(v)S.video[t.getAttribute("data-k")]=v;else delete S.video[t.getAttribute("data-k")];save();render();}
+ if(a==="nota"){var n1=ent(t.getAttribute("data-t"));if(n1){n1.nota=t.value;save();}}
+ if(a==="next"){var n2=ent(t.getAttribute("data-t"));if(n2){n2.next=t.value;save();}}
+ if(a==="fatto"){var k5=t.getAttribute("data-k");if(t.checked)L.done[k5]=1;else delete L.done[k5];if(L.entry){L.entry.done=Object.assign({},L.done);save();}}
+ if(a==="eFatto"){var e6=ent(t.getAttribute("data-t"));if(e6){e6.done=e6.done||{};if(t.checked)e6.done[t.getAttribute("data-k")]=1;else delete e6.done[t.getAttribute("data-k")];save();}}
+ if(a==="alNome"){var A3=alById(t.getAttribute("data-v"));if(A3&&t.value.trim()){A3.nome=t.value.trim();save();render();}}
+ if(a==="al"){var v7=t.value;if(v7==="__new"){newAl=true;S.setup.al="";}else{newAl=false;S.setup.al=v7;var A4=alById(v7);if(A4){Object.assign(S.setup,{n:A4.n,pub:A4.pub,eta:A4.eta||"8-10",lv:A4.lv,tema:"auto",aree:[]});}}save();render();}
+});
+initStore();
+})();
+</script>
+</body>
+</html>
