@@ -162,7 +162,7 @@ button,select,summary,label,a{touch-action:manipulation;-webkit-tap-highlight-co
     <button role="tab" id="tb-reg" data-a="tab" data-v="reg">Registro</button>
   </nav>
   <main id="app"></main>
-  <p class="ver">PadelStep v5 · 27 ott 11:45</p>
+  <p class="ver">PadelStep v6 · 27 ott</p>
 </div>
 <div id="campo" hidden></div>
 
@@ -451,7 +451,7 @@ function cand(blk,tema,slot,st){
 }
 function byId(id){for(var i=0;i<LIB.length;i++)if(LIB[i].i===id)return LIB[i];return null;}
 function splitMin(sum,n){var r=[],b=Math.floor(sum/n),rm=sum-b*n;for(var i=0;i<n;i++)r.push(b+(i<rm?1:0));return r;}
-function idsDiL(){var ids=idsDiL();return ids;}
+function idsDiL(){var ids=[];L.blocks.forEach(function(b){b.slots.forEach(function(sl){ids.push({i:sl.c[sl.pos%sl.c.length],min:sl.min,b:b.b});});});return ids;}
 function genera(over,keep){
  var st=JSON.parse(JSON.stringify(S.setup));
  var aree=over||(st.aree&&st.aree.length?st.aree.slice(0,4):[proponi(st)]);
